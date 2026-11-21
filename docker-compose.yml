@@ -1,0 +1,25 @@
+# Local development infrastructure for Family Habit.
+# Usage: docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: family-habit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-family_habit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-family_habit_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-family_habit}
+    ports:
+      # 5433 on the host so it does not clash with a locally installed PostgreSQL on 5432.
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-family_habit} -d ${POSTGRES_DB:-family_habit}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

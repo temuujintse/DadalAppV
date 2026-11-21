@@ -1,0 +1,74 @@
+# Family Habit — production stack (API + PostgreSQL).
+#
+#   cp .env.production.example .env.production   # fill in real secrets
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# Put a TLS-terminating reverse proxy (Caddy, nginx, a cloud load balancer) in front of the
+# API; it listens on 127.0.0.1 only. The `migrate` job runs migrations + reference seed before
+# the API starts.
+name: family-habit-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # No published port: only the API reaches the database.
+
+  migrate:
+    build:
+      context: ./backend
+      target: migrate
+    image: family-habit-api-migrate
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ./backend
+      target: runtime
+    image: family-habit-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+      REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS:-30}
+      INVITE_TOKEN_SECRET: ${INVITE_TOKEN_SECRET:?set INVITE_TOKEN_SECRET}
+      INVITE_TTL_HOURS: ${INVITE_TTL_HOURS:-72}
+      OFFLINE_SYNC_WINDOW_DAYS: ${OFFLINE_SYNC_WINDOW_DAYS:-3}
+      RATE_LIMIT_DEFAULT: ${RATE_LIMIT_DEFAULT:-120}
+      RATE_LIMIT_AUTH: ${RATE_LIMIT_AUTH:-10}
+    ports:
+      - '127.0.0.1:${API_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  pgdata:

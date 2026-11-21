@@ -1,0 +1,904 @@
+% !TEX program = xelatex
+% !TeX encoding = UTF-8
+\documentclass[12pt,a4paper,oneside]{report}
+
+% Compile with XeLaTeX in TeXstudio (the magic comment above selects it).
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{mongolian}
+\setotherlanguage{english}
+
+% Pick the first installed font that has Cyrillic (macOS / Windows / Linux).
+\newcommand{\pickfont}[4]{%
+  \IfFontExistsTF{#2}{\def#1{#2}}{%
+    \IfFontExistsTF{#3}{\def#1{#3}}{\def#1{#4}}}}
+\pickfont{\FHserif}{Noto Serif}{Times New Roman}{DejaVu Serif}
+\pickfont{\FHsans}{Noto Sans}{Arial}{DejaVu Sans}
+\pickfont{\FHmono}{Menlo}{DejaVu Sans Mono}{Courier New}
+
+\setmainfont{\FHserif}
+\setsansfont{\FHsans}
+\setmonofont{\FHmono}[Scale=0.9]
+\newfontfamily\cyrillicfont{\FHserif}
+\newfontfamily\cyrillicfontsf{\FHsans}
+\newfontfamily\cyrillicfonttt{\FHmono}[Scale=0.9]
+
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{microtype}
+
+\definecolor{primary}{HTML}{F97316}
+\definecolor{softbg}{HTML}{FFF9F3}
+\definecolor{codebg}{HTML}{F4F4F5}
+\definecolor{darktext}{HTML}{1E293B}
+\definecolor{success}{HTML}{22C55E}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=primary,
+  citecolor=primary,
+  pdftitle={Family Habit - Product and Technical Specification},
+  pdfauthor={Family Habit Product Team}
+}
+
+\setstretch{1.18}
+\setlength{\emergencystretch}{3em}
+\setlist[itemize]{leftmargin=1.6em,itemsep=3pt}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=3pt}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{darktext}\raggedright}
+  {\Large\chaptername\ \thechapter}{8pt}{\Huge}
+\titleformat{\section}{\Large\bfseries\color{darktext}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries\color{darktext}}{\thesubsection}{0.7em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Family Habit}
+\rhead{\small Product \& Technical Specification}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\lstdefinestyle{code}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!15},
+  numbers=left,
+  numberstyle=\tiny\color{black!50},
+  showstringspaces=false,
+  tabsize=2,
+  columns=fullflexible
+}
+\lstset{style=code}
+
+\newcommand{\productname}{\textbf{Family Habit}}
+\newcommand{\version}{1.2}
+\newcommand{\status}{Баталгаажсан шаардлагын суурь хувилбар}
+
+\begin{document}
+
+% ---------------- COVER ----------------
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+{\Huge\bfseries\color{primary} FAMILY HABIT\par}
+\vspace{0.6cm}
+{\LARGE Бүтээгдэхүүн ба техникийн бүрэн баримт бичиг\par}
+\vspace{0.5cm}
+{\large Product Requirements Document, UX Specification, Database, API \& Implementation Plan\par}
+\vfill
+\begin{tabular}{rl}
+\textbf{Хувилбар:} & \version\\
+\textbf{Төлөв:} & \status\\
+\textbf{Mobile:} & React Native + Expo\\
+\textbf{Backend:} & NestJS\\
+\textbf{Database:} & PostgreSQL\\
+\textbf{ORM:} & Prisma\\
+\textbf{Offline:} & SQLite + Sync API\\
+\textbf{Баримт бичгийн огноо:} & 2026 оны 11 сар
+\end{tabular}
+\vfill
+{\large Монгол хэл дээрх техникийн тодорхойлолт\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% ---------------- 1 ----------------
+\chapter{Төслийн танилцуулга}
+
+\section{Бүтээгдэхүүний зорилго}
+Family Habit нь хувь хүн болон гэр бүлийн гишүүдэд өдөр тутмын зөв дадал хэвшүүлэхэд туслах, тоглоомчилсон (gamified), урамшуулалд суурилсан mobile application юм. Хэрэглэгч дадал үүсгэж, өдөр бүр биелүүлж, ахиц дэвшлээ харах, XP цуглуулах, level ахиулах, pet-ээ хөгжүүлэх, гэр бүлийн зорилгод хамтран оролцох боломжтой.
+
+\section{Бүтээгдэхүүний үндсэн зарчим}
+\begin{enumerate}
+  \item Ашиглахад ойлгомжтой, цөөн алхамтай байх.
+  \item Өдөр тутмын дадал биелүүлэх үйлдлийг хурдан болгох.
+  \item Хэрэглэгчийг эерэг урамшуулал, шууд feedback-ээр идэвхжүүлэх.
+  \item Хүүхэд болон насанд хүрэгчдэд тохирох интерфэйстэй байх.
+  \item Offline үед үндсэн completion үйлдлийг хийх боломжтой байх.
+  \item XP болон ахицын тооцооллыг сервер дээр баталгаажуулах.
+  \item Хувийн мэдээлэл болон гэр бүлийн өгөгдлийг тусгаарлах.
+\end{enumerate}
+
+\section{Баталгаажсан бүтээгдэхүүний шийдвэр}
+\begin{longtable}{p{0.25\textwidth}p{0.67\textwidth}}
+\toprule
+\textbf{Шийдвэр} & \textbf{Баталгаажсан утга}\\
+\midrule
+Зорилтот хэрэглэгч & Хүүхэд, өсвөр насныхан, насанд хүрэгчид, эцэг эх\\
+Дадлын төрөл & Хувийн болон гэр бүлийн дадал\\
+Биелэлт баталгаажуулах & Өөрөө бүртгэх (self-reported)\\
+Gamification & XP, level, quest, achievement, reward, leaderboard, pet\\
+Гэр бүлийн бүтэц & Нэг хэрэглэгч нэг гэр бүлд харьяалагдана\\
+Гэр бүлийн хэмжээ & Эхний хувилбарт хязгааргүй; subscription-д бэлэн архитектур\\
+Family Habit горим & Дадал үүсгэхдээ PER\_MEMBER эсвэл SHARED сонгоно\\
+Streak & Дадлын schedule-д орсон өдөр бүрээр тооцно\\
+Pet & XP + care + accessories; animation-тай\\
+XP & Personal XP + Family XP; Pet XP тусдаа\\
+Offline & SQLite-д бүртгээд дараа нь сервертэй sync хийнэ\\
+\bottomrule
+\end{longtable}
+
+\section{Хамрах хүрээ}
+Эхний хувилбарт authentication, family, habit, completion, streak, XP, pet, quest, reward болон offline synchronization орно. Subscription, төлбөр, өргөн хүрээний analytics нь дараагийн хувилбарын боломж байна.
+
+% ---------------- 2 ----------------
+\chapter{Хэрэглэгч ба эрхийн загвар}
+
+\section{Хэрэглэгчийн төрлүүд}
+\begin{longtable}{p{0.18\textwidth}p{0.72\textwidth}}
+\toprule
+\textbf{Role} & \textbf{Эрх}\\
+\midrule
+OWNER & Гэр бүл үүсгэх, тохиргоо удирдах, гишүүн урих/хасах, эрх өөрчлөх, reward удирдах\\
+PARENT & Гэр бүлийн дадал, гишүүд, quest болон reward-ийг удирдах; reward хүсэлт шийдвэрлэх\\
+MEMBER & Өөрийн дадал үүсгэх, биелүүлэх, ахицаа харах, гэр бүлийн үйл ажиллагаанд оролцох\\
+CHILD & Өөрийн дадлыг биелүүлэх, pet болон тоглоомчилсон хэсгийг ашиглах; насанд тохирсон интерфэйс\\
+\bottomrule
+\end{longtable}
+
+\section{Нэг гэр бүлийн дүрэм}
+Нэг хэрэглэгч хамгийн ихдээ нэг FamilyMember бичлэгтэй байна. PostgreSQL-д \texttt{FamilyMember.userId} unique байна. Гэр бүлээс гарсан хэрэглэгчийн өмнөх completion болон XP transaction түүх устахгүй. Гэр бүлийн owner-ийг солих үед эрх шилжүүлэлтийг transaction болон audit log-оор бүртгэнэ.
+
+\section{Invite}
+Invite token нь санамсаргүй, таах боломжгүй байх бөгөөд database-д plaintext бус hash хэлбэрээр хадгалагдана. Урилга хугацаатай, цуцлах боломжтой, maxUses тохиргоотой байна. Join хийх үед хэрэглэгч аль хэдийн өөр гэр бүлд байгаа эсэхийг сервер шалгана.
+
+% ---------------- 3 ----------------
+\chapter{Үндсэн user flow}
+
+\section{Бүртгэл ба onboarding}
+\begin{enumerate}
+  \item Хэрэглэгч welcome дэлгэцээс бүртгүүлэх эсвэл нэвтрэх.
+  \item Display name болон avatar тохируулах.
+  \item Шинэ гэр бүл үүсгэх эсвэл invite code ашиглан нэгдэх.
+  \item Хувийн анхны дадал сонгох эсвэл шинээр үүсгэх.
+  \item Pet-ийн анхны дүрийг сонгох.
+  \item Home dashboard руу шилжих.
+\end{enumerate}
+
+\section{Дадал биелүүлэх flow}
+\begin{enumerate}
+  \item Home эсвэл Habits дэлгэцээс өнөөдрийн дадлыг сонгоно.
+  \item Complete товчийг дарна.
+  \item Online бол API руу хүсэлт илгээнэ; offline бол SQLite queue-д хадгална.
+  \item Баталгаажсан үед XP, streak, quest progress болон pet progress шинэчлэгдэнэ.
+  \item Богино reward animation, XP feedback харуулна.
+\end{enumerate}
+
+\section{Family Habit горим}
+\textbf{PER\_MEMBER:} Гишүүн бүр өөрийн completion-ийг тусад нь бүртгэнэ. Нэг гишүүний үйлдэл бусад гишүүний completion-ийг автоматаар биелүүлэхгүй.
+
+\textbf{SHARED:} Гэр бүлийн өмнөөс нэг гишүүн биелүүлнэ. Нэг гэр бүлийн дадал нэг local calendar day-д нэг л completion-той байна. Personal XP зөвхөн үйлдэл хийсэн гишүүнд олгогдоно; Family XP нэг удаа нэмэгдэнэ.
+
+% ---------------- 4 ----------------
+\chapter{Дадлын систем ба бизнес дүрэм}
+
+\section{Habit төрлүүд}
+\begin{itemize}
+  \item PERSONAL: нэг хэрэглэгчийн хувийн дадал.
+  \item FAMILY: гэр бүлийн хамтын дадал.
+\end{itemize}
+
+\section{Difficulty ба XP}
+\begin{longtable}{p{0.35\textwidth}r}
+\toprule
+\textbf{Difficulty} & \textbf{Санал болгож буй XP}\\
+\midrule
+EASY & 10\\
+MEDIUM & 20\\
+HARD & 30\\
+Daily Quest & 20\\
+Family Quest & 50\\
+Achievement & 25--200\\
+Pet care action & 5--15 Pet XP\\
+\bottomrule
+\end{longtable}
+XP reward-ийг client-ээс хүлээж авахгүй. Backend difficulty болон server-side configuration-оор тооцно.
+
+\section{Completion uniqueness}
+\begin{itemize}
+  \item PERSONAL: habit + user + localDate гэсэн нийлбэрээр нэг completion.
+  \item FAMILY/PER\_MEMBER: habit + user + localDate гэсэн нийлбэрээр нэг completion.
+  \item FAMILY/SHARED: habit + localDate гэсэн нийлбэрээр нэг completion (habit нь нэг гэр бүлд харьяалагддаг).
+\end{itemize}
+Completion бүр unique idempotency key-тэй байна. Давхар хүсэлт ирэхэд XP дахин олгохгүй.
+
+\section{Streak}
+Streak нь хэрэглэгчийн timezone болон local calendar date дээр үндэслэнэ. Дадлын schedule-д орсон өдөр бүр completion шаардана. Schedule-д орсон өдрийг алгасвал current streak тэг болно. Schedule-д ороогүй өдөр (жишээ нь амралтын өдөр) streak-ийг тасалдуулахгүй. Нэг өдөрт нэг л completion бүртгэгддэг тул streak өдөрт хамгийн ихдээ нэгээр өснө.
+
+Цаашид streak grace day эсвэл freeze item нэмэх эсэхийг тусдаа бүтээгдэхүүний шийдвэрээр тогтооно.
+
+% ---------------- 5 ----------------
+\chapter{Gamification ба урамшууллын систем}
+
+\section{XP wallet}
+Систем гурван тусдаа XP хэмжигдэхүүнтэй байна:
+\begin{itemize}
+  \item Personal XP: хэрэглэгчийн хувийн ахиц.
+  \item Family XP: гэр бүлийн хамтын ахиц.
+  \item Pet XP: тухайн хэрэглэгчийн pet-ийн хөгжил.
+\end{itemize}
+Эдгээрийг нэг баланс болгон нийлүүлэхгүй. XPTransaction нь бүх өөрчлөлтийн immutable ledger байна. Балансын талбарууд нь хурдан унших зориулалттай aggregate/cache байна.
+
+\section{Level}
+Дараагийн level-д хүрэхэд шаардлагатай XP:
+\[
+XP_{\text{next}} = 100 + 50 \times (L-1)
+\]
+Энд \(L\) нь одоогийн level. Level ахихад animation, celebration feedback болон дараагийн зорилгын progress харуулна.
+
+\section{Achievement}
+Achievement нь тодорхой нөхцөл биелэхэд нэг удаа нээгдэнэ. Жишээ:
+\begin{itemize}
+  \item First Step: анхны дадлаа биелүүлэх.
+  \item 7-Day Streak: 7 өдөр дараалан биелүүлэх.
+  \item Habit Builder: 5 идэвхтэй дадалтай болох.
+  \item Family Teamwork: гэр бүлийн quest дуусгах.
+  \item Consistency: нийт 30 өдөр дадал биелүүлэх.
+\end{itemize}
+Achievement reward-ийг нэг л удаа claim хийж болно.
+
+\section{Quest}
+Quest нь daily, weekly, family гэсэн төрөлтэй байж болно. Quest progress нь completion event-ээс шинэчлэгдэнэ. Quest дууссан эсэх болон шагнал олголтыг backend баталгаажуулна.
+
+\section{Leaderboard}
+Leaderboard нь зөвхөн нэг гэр бүлийн хүрээнд байна. Хувийн XP-г харуулахдаа хүүхдийн аюулгүй байдал, гэр бүлийн тохиргоог харгалзана. Дэлхийн нийт хэрэглэгчийн leaderboard эхний хувилбарт орохгүй.
+
+\section{Reward}
+Reward нь гэр бүлийн дотоод урамшуулал байна. Жишээ нь кино сонгох эрх, дуртай хоолоо сонгох, хамт тоглох цаг. Redemption төлөв:
+\[
+PENDING \rightarrow APPROVED \rightarrow REDEEMED
+\]
+Мөн REJECTED болон CANCELLED төлөвтэй. XP-г зөвхөн approval хийх үед нэг удаа хасна. Reject/cancel үед XP хасахгүй. Level нь нийт цуглуулсан (lifetime) XP-ээр тооцогдох тул reward-д XP зарцуулсан ч level буурахгүй.
+
+% ---------------- 6 ----------------
+\chapter{Pet систем: animation ба interaction}
+
+\section{Pet-ийн зорилго}
+Pet нь хэрэглэгчийн дадал хэвшүүлэх явцыг харагдахуйц, сэтгэл хөдлөлтэй, урам өгдөг болгох гол engagement элемент байна. Pet нь зөвхөн статик зураг биш, state болон event-д хариу үйлдэл үзүүлдэг animated character байна.
+
+\section{Pet state}
+Pet-ийн үндсэн state:
+\begin{itemize}
+  \item IDLE: тайван амьсгалах, нүдээ анивчих, бага зэрэг хөдөлгөөн хийх.
+  \item HAPPY: дадал биелүүлэхэд баярлах, үсрэх, инээмсэглэх.
+  \item LEVEL\_UP: level ахихад celebration animation.
+  \item EATING/CARE: арчилгааны үйлдэл хийх үеийн animation.
+  \item SLEEPING: хэрэглэгчийн тохируулсан амралтын цагт унтаж буй төлөв.
+  \item UNLOCK: шинэ accessory нээгдэх үеийн онцгой animation.
+\end{itemize}
+
+\section{Animation event specification}
+\begin{longtable}{p{0.24\textwidth}p{0.34\textwidth}p{0.32\textwidth}}
+\toprule
+\textbf{Event} & \textbf{Animation} & \textbf{UX үр дүн}\\
+\midrule
+App open & Idle loop, blink & Амьд мэт угтах\\
+Habit complete & Happy bounce, sparkle & Шууд эерэг feedback\\
+XP gained & XP particles, counter increase & Ахиц ойлгомжтой харагдах\\
+Level up & Celebration, glow, scale & Том амжилтыг онцлох\\
+Care action & Care interaction & Pet-тэй холбоо үүсгэх\\
+Accessory unlock & Reveal animation & Шинэ зүйл авах сэтгэл ханамж\\
+Accessory equip & Short transition & Өөрчлөлт харагдах\\
+Quest complete & Cheer animation & Зорилго дуусгасныг тэмдэглэх\\
+\bottomrule
+\end{longtable}
+
+\section{Animation implementation}
+React Native/Expo дээр дараах хэрэгслүүдийг ашиглаж болно:
+\begin{itemize}
+  \item React Native Reanimated: screen transition, gesture, layout animation.
+  \item Lottie: designer-аас ирсэн JSON animation.
+  \item Rive: state machine бүхий interactive character animation.
+  \item React Native Gesture Handler: swipe болон touch interaction.
+\end{itemize}
+Pet-ийн үндсэн character-ийг Rive ашиглан хийхийг зөвлөж байна. Ингэснээр IDLE, HAPPY, LEVEL\_UP зэрэг state-үүдийг кодоос удирдах боломжтой. Хэрэв эхний хувилбарт Rive asset бэлэн биш бол Lottie animation эсвэл sprite-based animation ашиглаж болно.
+
+\section{Pet business rules}
+\begin{itemize}
+  \item Habit completion бүр difficulty-д тохирсон хэмжээний Pet XP өгнө.
+  \item Care action нь тусдаа cooldown болон idempotency key-тэй байна.
+  \item Accessory нь level, Pet XP эсвэл achievement нөхцөлөөр нээгдэнэ.
+  \item Нэг accessory-г нэг pet-д нэг л удаа эзэмшинэ.
+  \item Pet-ийн XP, level болон нээгдсэн accessory нь хуримтлагдаж хадгалагдана.
+  \item Happiness нь care action болон дадлын биелэлтээр нэмэгдэж, pet-ийн илэрхийлэл, animation-д нөлөөлнө.
+\end{itemize}
+
+% ---------------- 7 ----------------
+\chapter{UI/UX ба дэлгэцийн шилжилт}
+
+\section{Design direction}
+Дизайн нь playful minimalism буюу цэвэрхэн, дулаан өнгөтэй, тоглоомчилсон жижиг элементүүдтэй байна. Хэт олон өнгө, badge, card, animation зэрэгцүүлж интерфэйсийг замбараагүй болгохгүй.
+
+\section{Color tokens}
+\begin{longtable}{p{0.3\textwidth}p{0.25\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Name} & \textbf{Hex} & \textbf{Зориулалт}\\
+\midrule
+Primary & \#F97316 & Гол action, XP accent\\
+Background & \#FFF9F3 & Үндсэн background\\
+Surface & \#FFFFFF & Card болон modal\\
+Text & \#1E293B & Үндсэн текст\\
+Secondary & \#64748B & Туслах текст\\
+Success & \#22C55E & Амжилт, completion\\
+Warning & \#F59E0B & Анхааруулга\\
+Error & \#EF4444 & Алдаа\\
+Purple & \#8B5CF6 & Quest, special reward\\
+\bottomrule
+\end{longtable}
+
+\section{Navigation}
+Доод tab navigation:
+\begin{enumerate}
+  \item Home
+  \item Habits
+  \item Quests
+  \item Family
+  \item Rewards
+\end{enumerate}
+Pet нь Home dashboard дээр онцгой байрлалтай байхаас гадна тусдаа дэлгэрэнгүй дэлгэцтэй байж болно.
+
+\section{Screen inventory}
+\begin{longtable}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Дэлгэц} & \textbf{Гол шаардлага}\\
+\midrule
+Welcome / Auth & Бүртгэл, нэвтрэх, нууц үг сэргээх\\
+Onboarding & Нэр, avatar, гэр бүл үүсгэх/нэгдэх\\
+Home & Өдрийн ахиц, streak, XP, pet, дараагийн зорилго\\
+Habits & Хувийн болон гэр бүлийн дадлын жагсаалт\\
+Habit Detail & Дадлын тайлбар, schedule, completion history\\
+Create Habit & Type, completion mode, difficulty, schedule, assignment\\
+Calendar & Өдөр тутмын completion болон streak\\
+Quest & Daily/weekly/family quest ба progress\\
+Family & Гишүүд, family XP, урилга\\
+Pet & Animated pet, level, care, accessories\\
+Rewards & Reward жагсаалт, хүсэлт, шийдвэрийн төлөв\\
+Profile & Avatar, тохиргоо, хэрэглэгчийн ахиц\\
+Settings & Хэл, timezone, notification, privacy\\
+\bottomrule
+\end{longtable}
+
+\section{Screen transition шаардлага}
+Шилжилт бүр зорилготой, богино, тасалдалгүй байна:
+\begin{itemize}
+  \item Tab хооронд: 180--250 ms fade/slide эсвэл navigation-native transition.
+  \item Detail руу орох: card-аас дэлгэрэнгүй рүү shared-element төстэй зөөлөн transition.
+  \item Modal: 180--220 ms fade + slight scale эсвэл bottom sheet slide.
+  \item Completion: товчны tactile feedback, check animation, XP counter increment.
+  \item Level up: 500--900 ms celebration; хэрэглэгчийг удаан хүлээлгэхгүй.
+  \item Pet state transition: 150--350 ms орчим, event-д тохируулсан хөдөлгөөн.
+\end{itemize}
+Animation нь navigation болон accessibility-г саатуулах ёсгүй. Reduced Motion тохиргоог дэмжиж, шаардлагатай үед хөдөлгөөнийг багасгана.
+
+\section{Motivational UX}
+\begin{itemize}
+  \item Өдрийн зорилгыг жижиг, биелүүлж болох алхмуудаар харуулах.
+  \item XP болон level progress-ийг ойлгомжтой progress bar-аар харуулах.
+  \item Streak-ийг эерэг өнгө, тайлбартай харуулах; streak тасарсан үед дахин эхлүүлэхэд урам өгөх мессеж харуулах.
+  \item Хэрэглэгчийн ахицыг өмнөх өөрийн үзүүлэлттэй харьцуулах.
+  \item Quest болон achievement-ийг хүрч болохуйц зорилго болгон санал болгох.
+  \item Notification-ийн давтамж болон цагийг хэрэглэгч өөрөө тохируулах боломжтой байх.
+  \item Хүүхдэд зориулсан UI нь ойлгомжтой, насанд хүрэгчдэд зориулсан хэсэг нь энгийн, цэгцтэй байх.
+\end{itemize}
+
+% ---------------- 8 ----------------
+\chapter{Database ба Prisma загварын шаардлага}
+
+\section{Үндсэн entity}
+\begin{longtable}{p{0.32\textwidth}p{0.58\textwidth}}
+\toprule
+\textbf{Entity} & \textbf{Зориулалт}\\
+\midrule
+User, UserProfile & Хэрэглэгч ба профайл\\
+Family, FamilyMember, FamilyInvite & Гэр бүл, гишүүн, урилга\\
+Habit, HabitAssignment, HabitScheduleDay & Дадал ба хуваарилалт\\
+HabitCompletion, HabitStreak & Биелэлт ба streak\\
+UserGamification, FamilyGamification & Хувийн болон гэр бүлийн ахиц\\
+XPTransaction & XP ledger\\
+UserPet, PetCareAction & Pet болон арчилгаа\\
+PetAccessory, UserPetAccessory & Accessory catalog ба эзэмшил\\
+Quest, QuestProgress & Даалгавар ба явц\\
+Reward, RewardRedemption & Урамшуулал ба хүсэлт\\
+SyncOperation & Offline operation бүртгэл\\
+\bottomrule
+\end{longtable}
+
+\section{Prisma schema-ийн гол загвар}
+Дараах код нь schema-ийн үндсэн хэсгийг харуулна. Production schema-д бүх relation, index, enum, migration болон нэмэлт constraint-ийг бүрэн оруулж баталгаажуулна.
+
+\begin{lstlisting}[language=]
+enum FamilyRole {
+  OWNER
+  PARENT
+  MEMBER
+  CHILD
+}
+
+enum HabitType {
+  PERSONAL
+  FAMILY
+}
+
+enum HabitCompletionMode {
+  PER_MEMBER
+  SHARED
+}
+
+enum HabitDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum XPWalletType {
+  PERSONAL
+  FAMILY
+  PET
+}
+
+model FamilyMember {
+  id       String     @id @default(uuid()) @db.Uuid
+  familyId String     @db.Uuid
+  userId   String     @unique @db.Uuid
+  role     FamilyRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  @@unique([familyId, userId])
+  @@index([familyId, role])
+}
+
+model Habit {
+  id             String              @id @default(uuid()) @db.Uuid
+  creatorId      String              @db.Uuid
+  familyId       String?             @db.Uuid
+  title          String
+  description    String?
+  type           HabitType
+  completionMode HabitCompletionMode?
+  difficulty     HabitDifficulty     @default(EASY)
+  status         String              @default("ACTIVE")
+  startDate      DateTime            @db.Date
+  timezone       String              @default("Asia/Ulaanbaatar")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([familyId, status])
+  @@index([creatorId, status])
+}
+
+model HabitCompletion {
+  id             String   @id @default(uuid()) @db.Uuid
+  habitId        String   @db.Uuid
+  userId         String?  @db.Uuid
+  completedById  String   @db.Uuid
+  localDate      DateTime @db.Date
+  idempotencyKey String   @unique
+  source         String   @default("ONLINE")
+  createdAt      DateTime @default(now())
+
+  @@index([habitId, localDate])
+  @@index([userId, localDate])
+}
+
+model XPTransaction {
+  id             String       @id @default(uuid()) @db.Uuid
+  walletType     XPWalletType
+  userId         String?      @db.Uuid
+  familyId       String?      @db.Uuid
+  amount         Int
+  sourceType     String
+  sourceId       String?
+  idempotencyKey String       @unique
+  createdAt      DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@index([familyId, createdAt])
+}
+
+model UserPet {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
+  name      String   @default("Buddy")
+  species   String   @default("DEFAULT")
+  level     Int      @default(1)
+  totalXP   Int      @default(0)
+  happiness Int      @default(100)
+  updatedAt DateTime @updatedAt
+}
+
+model SyncOperation {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  operationId   String   @unique
+  operationType String
+  payload       Json
+  status        String   @default("PENDING")
+  result        Json?
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+
+  @@index([userId, status, createdAt])
+}
+\end{lstlisting}
+
+\section{Нэмэлт constraint}
+\begin{itemize}
+  \item FAMILY habit-д familyId болон completionMode заавал байна.
+  \item PERSONAL habit-д completionMode null байна.
+  \item PER\_MEMBER completion-д userId заавал байна.
+  \item SHARED completion-д userId нь null байж болох бөгөөд family ownership-ийг habit-аас шалгана.
+  \item XP wallet type бүр зөв owner ID-тай байна.
+  \item XP болон completion uniqueness-ийг transaction дотор баталгаажуулна.
+  \item FamilyMember.userId unique нь нэг гэр бүлийн дүрмийг баталгаажуулна.
+\end{itemize}
+
+\textbf{Implementation note:} Shared completion болон Personal/Family/Pet XP олголтын бүх алхам нэг Prisma transaction дотор хийгдэнэ. Concurrent request-ийн үед unique constraint болон serializable/appropriate locking стратеги ашиглан давхар олголтоос хамгаална.
+
+% ---------------- 9 ----------------
+\chapter{REST API specification}
+
+\section{Ерөнхий}
+Base path: \texttt{/api/v1}. Authentication: Bearer access token. Request болон response body нь JSON байна. Бүх endpoint DTO validation, authorization, pagination болон error format-той байна.
+
+\section{Endpoint жагсаалт}
+\begin{longtable}{p{0.15\textwidth}p{0.48\textwidth}p{0.27\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Зориулалт}\\
+\midrule
+POST & /auth/register & Бүртгэл\\
+POST & /auth/login & Нэвтрэх\\
+POST & /auth/refresh & Token шинэчлэх\\
+GET & /auth/me & Өөрийн мэдээлэл\\
+POST & /families & Гэр бүл үүсгэх\\
+GET & /families/current & Одоогийн гэр бүл\\
+GET & /families/current/members & Гишүүд\\
+POST & /families/current/invites & Урилга үүсгэх\\
+POST & /families/join & Урилгаар нэгдэх\\
+POST & /habits & Дадал үүсгэх\\
+GET & /habits & Дадлын жагсаалт\\
+GET & /habits/:id & Дадлын дэлгэрэнгүй\\
+PATCH & /habits/:id & Дадал засах\\
+POST & /habits/:id/completions & Биелэлт бүртгэх\\
+GET & /habits/:id/calendar & Календарь\\
+GET & /gamification/me & Хувийн XP ба level\\
+GET & /gamification/family & Family XP\\
+GET & /gamification/leaderboard & Гэр бүлийн leaderboard\\
+GET & /pet/me & Pet мэдээлэл\\
+POST & /pet/me/care & Pet care action\\
+POST & /pet/me/accessories/:id/equip & Accessory өмсгөх\\
+GET & /quests & Quest жагсаалт\\
+POST & /quests/:id/claim & Quest шагнал авах\\
+POST & /rewards/:id/redeem & Reward хүсэх\\
+POST & /redemptions/:id/approve & Reward батлах\\
+POST & /redemptions/:id/reject & Reward татгалзах\\
+POST & /sync/push & Offline operation илгээх\\
+GET & /sync/pull & Өөрчлөлт татах\\
+\bottomrule
+\end{longtable}
+
+\section{Habit create request жишээ}
+\begin{lstlisting}[language=]
+{
+  "title": "Өглөө 20 минут алхах",
+  "type": "FAMILY",
+  "completionMode": "PER_MEMBER",
+  "difficulty": "MEDIUM",
+  "assignedUserIds": ["uuid-user-1", "uuid-user-2"],
+  "schedule": [0, 1, 2, 3, 4, 5, 6],
+  "startDate": "2026-11-21",
+  "timezone": "Asia/Ulaanbaatar"
+}
+\end{lstlisting}
+
+\section{Completion request жишээ}
+\begin{lstlisting}[language=]
+{
+  "localDate": "2026-11-21",
+  "note": "Өглөө хийсэн",
+  "idempotencyKey": "client-generated-uuid"
+}
+\end{lstlisting}
+
+\section{Completion response жишээ}
+\begin{lstlisting}[language=]
+{
+  "success": true,
+  "completion": {
+    "id": "server-completion-uuid",
+    "localDate": "2026-11-21",
+    "status": "COMPLETED"
+  },
+  "rewards": {
+    "personalXP": 20,
+    "familyXP": 20,
+    "petXP": 20
+  },
+  "streak": {
+    "current": 5,
+    "longest": 12
+  }
+}
+\end{lstlisting}
+
+\section{API security}
+Client-ээс ирсэн userId, familyId, XP amount, role болон completion owner-ийг шууд итгэж болохгүй. Сервер JWT identity болон database membership-ээс эрхийг тогтооно. Бүх family-scoped query-д family membership authorization хэрэглэнэ.
+
+% ---------------- 10 ----------------
+\chapter{Offline ба synchronization}
+
+\section{Local persistence}
+React Native app SQLite ашиглан cached data болон pending operation хадгална. Secure token-ийг SQLite-д plaintext хадгалахгүй; Expo SecureStore зэрэг secure storage ашиглана.
+
+\section{Offline operation lifecycle}
+\begin{enumerate}
+  \item Completion үүсэхэд local UUID operationId гаргана.
+  \item SQLite-д PENDING төлөвөөр хадгална.
+  \item UI optimistic completion харуулна.
+  \item Сүлжээ сэргэсэн үед pending operation-уудыг batch-аар илгээнэ.
+  \item Backend operation бүрийг тусад нь шалгаж, idempotent боловсруулна.
+  \item PROCESSED, REJECTED эсвэл CONFLICT үр дүнг local storage-д хадгална.
+\end{enumerate}
+
+\section{Conflict policy}
+\begin{itemize}
+  \item Ижил operation дахин ирэхэд анхны үр дүнг буцаана.
+  \item SHARED habit-ийн тухайн өдрийн completion аль хэдийн байгаа бол давхар completion reject/conflict болно.
+  \item Offline timestamp-ийг дангаар нь найдвартай гэж үзэхгүй.
+  \item Ирээдүйн огноо, зөвшөөрөгдөх sync цонхоос хуучин огноо, тухайн үед эрхгүй байсан habit-ийн үйлдлийг шалгана.
+  \item Sync нэг operation дээр алдаа гарсан ч бусад operation-ийг боловсруулах боломжтой байна.
+\end{itemize}
+
+\section{Sync API жишээ}
+\begin{lstlisting}[language=]
+{
+  "operations": [
+    {
+      "operationId": "uuid-operation-1",
+      "type": "HABIT_COMPLETION",
+      "createdAt": "2026-11-21T08:30:00+08:00",
+      "payload": {
+        "habitId": "uuid-habit",
+        "localDate": "2026-11-21",
+        "idempotencyKey": "uuid-idempotency"
+      }
+    }
+  ]
+}
+\end{lstlisting}
+
+% ---------------- 11 ----------------
+\chapter{Технологийн сонголт ба кодын бүтэц}
+
+\section{Mobile}
+\begin{itemize}
+  \item React Native + Expo
+  \item Expo Router
+  \item TypeScript
+  \item TanStack Query
+  \item Zustand
+  \item React Hook Form + Zod
+  \item React Native Reanimated
+  \item Rive эсвэл Lottie
+  \item SQLite
+  \item Expo SecureStore
+  \item Expo Notifications
+\end{itemize}
+
+\section{Backend}
+\begin{itemize}
+  \item NestJS modular monolith
+  \item PostgreSQL
+  \item Prisma
+  \item JWT authentication
+  \item Swagger/OpenAPI
+  \item Redis болон background worker-ийг шаардлагатай үед нэмнэ.
+\end{itemize}
+
+\section{Backend folder structure}
+\begin{lstlisting}
+backend/
+  prisma/
+    schema.prisma
+    migrations/
+    seed.ts
+  src/
+    auth/
+    users/
+    families/
+    invites/
+    habits/
+    completions/
+    streaks/
+    gamification/
+    pets/
+    quests/
+    rewards/
+    sync/
+    notifications/
+    common/
+    database/
+    main.ts
+\end{lstlisting}
+
+\section{Mobile folder structure}
+\begin{lstlisting}
+mobile/
+  app/
+    (auth)/
+    (onboarding)/
+    (tabs)/
+    habit/
+    pet/
+    settings/
+  src/
+    components/
+    features/
+      auth/
+      family/
+      habits/
+      gamification/
+      pets/
+      quests/
+      rewards/
+      sync/
+    database/
+    hooks/
+    services/
+    store/
+    theme/
+    types/
+    utils/
+\end{lstlisting}
+
+% ---------------- 12 ----------------
+\chapter{Security, privacy ба reliability}
+
+\begin{enumerate}
+  \item HTTPS бүх орчинд ашиглана.
+  \item Password hash-ийг Argon2id эсвэл баталгаатай password hashing алгоритмаар хадгална.
+  \item JWT access/refresh token-ийн хугацаа болон rotation бодлоготой байна.
+  \item Family data isolation бүх service болон query-д мөрдөгдөнө.
+  \item Role өөрчлөлт, invite, member removal, reward approval зэрэгт audit log байна.
+  \item Rate limiting болон input validation хэрэглэнэ.
+  \item Хүүхдийн хувийн мэдээллийг хамгийн бага хэмжээнд цуглуулна.
+  \item Push notification нь хэрэглэгчийн тохиргоо болон насанд тохирсон агуулгатай байна.
+  \item Database backup болон restore туршилт хийнэ.
+  \item XP болон completion өөрчлөлт transaction, unique key, ledger хамгаалалттай байна.
+\end{enumerate}
+
+% ---------------- 13 ----------------
+\chapter{Testing ба acceptance criteria}
+
+\section{Backend tests}
+\begin{longtable}{p{0.48\textwidth}p{0.42\textwidth}}
+\toprule
+\textbf{Тест} & \textbf{Хүлээгдэх үр дүн}\\
+\midrule
+Нэг user хоёр family-д join хийх & Reject\\
+PER\_MEMBER completion & Гишүүн тус бүрийн completion тусдаа\\
+SHARED completion & Өдөрт нэг completion\\
+Давхар idempotency key & XP давхар олгохгүй\\
+Personal habit completion & Personal XP нэмэгдэнэ\\
+Family habit completion & Personal + Family XP нэмэгдэнэ\\
+Pet XP & Pet wallet тусдаа нэмэгдэнэ\\
+Schedule-д орсон өдрийг алгасах & Current streak 0 болно\\
+Schedule-д ороогүй өдөр & Streak тасрахгүй\\
+Timezone boundary & Зөв local date тооцно\\
+Reward rejected & XP хасахгүй\\
+Reward approved давхар хүсэлт & Нэг удаа л хасна\\
+Offline duplicate sync & Ижил үр дүн буцаана\\
+Unauthorized family access & 403/404 хамгаалалт\\
+\bottomrule
+\end{longtable}
+
+\section{Mobile tests}
+\begin{itemize}
+  \item Offline completion UI шууд шинэчлэгдэх.
+  \item App restart хийсний дараа pending operation хадгалагдах.
+  \item Sync амжилтгүй бол retry хийх.
+  \item Sync conflict-ийг ойлгомжтой харуулах.
+  \item Reduced Motion тохиргоонд animation багасах.
+  \item Pet state animation event бүрд зөв солигдох.
+  \item Navigation transition нь хэрэглэгчийн үйлдлийг саатуулахгүй байх.
+\end{itemize}
+
+\section{Release acceptance}
+\begin{itemize}
+  \item Бүртгэл, нэвтрэлт, гэр бүл үүсгэх/нэгдэх бүрэн ажиллана.
+  \item Хувийн болон гэр бүлийн дадал үүсгэж, биелүүлнэ.
+  \item XP, level, streak сервер дээр зөв тооцогдоно.
+  \item Pet XP, care, accessory болон animation ажиллана.
+  \item Quest болон reward-ийн үндсэн урсгал ажиллана.
+  \item Offline completion болон sync найдвартай ажиллана.
+  \item Security болон family isolation тестүүд давна.
+\end{itemize}
+
+% ---------------- 14 ----------------
+\chapter{Implementation roadmap}
+
+\begin{longtable}{p{0.12\textwidth}p{0.35\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Phase} & \textbf{Нэр} & \textbf{Ажлууд}\\
+\midrule
+1 & Foundation & NestJS, PostgreSQL, Prisma, migrations, validation, Swagger, logging\\
+2 & Authentication & Register, login, refresh token, profile, authorization\\
+3 & Family & Family CRUD, member, invite, join, roles, isolation\\
+4 & Habit engine & Habit CRUD, assignments, schedule, completion, calendar\\
+5 & Gamification & XP ledger, level, streak, leaderboard, achievements\\
+6 & Pet & Pet profile, XP, care, accessories, animation integration\\
+7 & Quest and reward & Daily/family quest, progress, redemption, approval\\
+8 & Offline sync & SQLite, pending queue, sync push/pull, conflict handling\\
+9 & UI polish & Navigation, transitions, motion design, accessibility\\
+10 & Release & E2E, security review, monitoring, backup, store release\\
+\bottomrule
+\end{longtable}
+
+\section{Эхний release-ийн зөвлөмж}
+Эхний хувилбарын хамрах хүрээг дотоод хоёр үе шаттайгаар хөгжүүлнэ. Эхлээд authentication, family, habit, completion, Personal/Family XP болон streak-ийг бүрэн ажиллуулна. Дараа нь pet animation, care, accessories, quest болон reward-ийг нэмнэ. Offline sync-ийг үндсэн completion архитектуртай хамт эхнээс нь төлөвлөнө; дараа нь залгаж нэмэх нь архитектурын өөрчлөлт шаардана.
+
+% ---------------- 15 ----------------
+\chapter{Эрсдэл ба нээлттэй техникийн шийдвэр}
+
+\begin{longtable}{p{0.25\textwidth}p{0.63\textwidth}}
+\toprule
+\textbf{Асуудал} & \textbf{Шийдвэрлэх шаардлага}\\
+\midrule
+Authentication provider & NestJS өөрийн auth эсвэл Firebase Auth ашиглах эсэхийг сонгоно. Аль ч тохиолдолд backend token-ийг баталгаажуулна.\\
+Shared streak owner & Гэр бүлийн shared streak-ийг family-level хүснэгтээр хадгалах эсвэл owner abstraction хэрэглэх.\\
+Offline date window & Offline completion хэд хоногийн дараа sync хийхийг зөвшөөрөхийг бүтээгдэхүүний бодлогоор тогтооно.\\
+XP balance correction & Алдаатай XP-г устгах бус REVERSAL transaction-оор засна.\\
+Pet art pipeline & Rive/Lottie asset, animation state naming, designer handoff стандартыг тогтооно.\\
+Subscription & Дараа нь FamilyPlan, Subscription, Entitlement entity нэмэх.\\
+Streak grace mechanic & Хэрэглэгч streak freeze эсвэл grace day ашиглах эсэхийг дараагийн хувилбарт шийднэ.\\
+\bottomrule
+\end{longtable}
+
+\chapter*{Дүгнэлт}
+\addcontentsline{toc}{chapter}{Дүгнэлт}
+Family Habit нь дадал бүртгэх энгийн апп байхаас гадна хэрэглэгчийн өдөр тутмын ахиц, гэр бүлийн хамтын зорилго, animated pet, урамшуулал болон offline ашиглалтыг нэгтгэсэн бүтээгдэхүүн байна. Архитектурын гол зарчим нь XP болон completion-ийн үнэн зөв байдлыг backend дээр хадгалах, mobile дээр хурдан бөгөөд сэтгэл ханамжтай хэрэглээ бий болгох, animation-ийг хэрэглэгчийн амжилттай уялдуулах явдал юм.
+
+\vfill
+\begin{center}
+\textcolor{primary}{\rule{0.55\textwidth}{1pt}}\\
+\textbf{FAMILY HABIT — Build better habits together.}
+\end{center}
+
+\end{document}

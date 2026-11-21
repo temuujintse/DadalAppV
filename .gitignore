@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Env files (never commit secrets)
+.env
+.env.*
+!.env.example
+!.env.test.example
+!.env.production.example
+
+# Build output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Prisma generated client
+backend/src/generated/
+
+# Expo / React Native
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/ios/
+mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# LaTeX build artefacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# macOS
+.DS_Store

@@ -60,6 +60,18 @@ docker compose ... exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$P
 - API: helmet header (HSTS, nosniff, frame-options), CORS зөвхөн `CORS_ORIGINS`, Swagger production-д хаалттай, нэвтрэлт минутад 10 оролдлого (IP-ээр), JSON body 100KB хязгаар (413), stack trace клиент рүү гардаггүй.
 - Нууц үг argon2id, access token 15 мин, refresh token rotation + дахин ашиглалт илэрвэл session хүчингүй.
 
+## 1A. Backend (Render — хамгийн хялбар)
+
+`render.yaml` (Blueprint) нь PostgreSQL болон API service-ийг Singapore region-д үүсгэнэ. API нь `backend/Dockerfile.render`-ээр build хийгдэж, асах бүрдээ migration болон лавлах өгөгдлийн seed-ийг (idempotent) ажиллуулна. JWT/invite нууц утгыг Render өөрөө үүсгэнэ.
+
+1. https://dashboard.render.com → GitHub-аар нэвтэрнэ.
+2. **New → Blueprint** → `DadalAppV` repo → **Apply**.
+3. Build дуусахад API хаяг: `https://family-habit-api.onrender.com/api/v1` (нэр давхцвал Render өөр нэр өгнө — Dashboard дээрээс харна).
+4. Шалгах: `https://<хаяг>/api/v1/health` → `{"status":"ok","database":"up"}`.
+5. EAS-д бүртгэх: `eas env:create --environment production --name EXPO_PUBLIC_API_URL --value https://<хаяг>/api/v1 --visibility plaintext`.
+
+`main` руу push хийх бүрд Render автоматаар дахин deploy хийнэ. Free plan: идэвхгүй үед service унтана (эхний хүсэлт ~1 мин), free DB хугацаатай — жинхэнэ хэрэглэгчдээс өмнө `plan`-уудыг төлбөртэй болгоно (Render-ийн одоогийн нөхцөлийг шалгана уу).
+
 ## 2. Mobile (EAS)
 
 ### 2.1 Анхны тохиргоо (нэг удаа)

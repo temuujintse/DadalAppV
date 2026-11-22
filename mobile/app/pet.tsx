@@ -26,6 +26,8 @@ import {
   useToggleAccessory,
 } from '@/features/pets/api';
 import { AnimatedPet } from '@/features/pets/components/AnimatedPet';
+import { usePetInteraction } from '@/features/ai/api';
+import { PetMessageBubble } from '@/features/ai/components/PetMessageBubble';
 import { PetNameSheet } from '@/features/pets/components/PetNameSheet';
 import { useNow } from '@/hooks/useNow';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
@@ -59,6 +61,7 @@ function timeLeft(iso: string, now: Date): string {
 
 export default function PetScreen() {
   const pet = usePet();
+  const talk = usePetInteraction();
   const accessories = useAccessories();
   const history = usePetHistory();
   const state = usePetAnimationState();
@@ -118,9 +121,13 @@ export default function PetScreen() {
           onPress={() => emitPetEvent('TAPPED')}
           accessibilityLabel={`${p.name}. ${moodText(p.name, p.mood, sleeping)}`}
         />
-        <AppText color={colors.secondary} align="center">
-          {moodText(p.name, p.mood, sleeping)}
-        </AppText>
+        {talk.data ? (
+          <PetMessageBubble interaction={talk.data} />
+        ) : (
+          <AppText color={colors.secondary} align="center">
+            {moodText(p.name, p.mood, sleeping)}
+          </AppText>
+        )}
       </Animated.View>
 
       <Card>

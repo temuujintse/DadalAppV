@@ -28,12 +28,13 @@ import {
 import { AIMessageBubble } from '@/features/ai/components/AIMessageBubble';
 import { AIRecommendationCard } from '@/features/ai/components/AIRecommendationCard';
 import { AIThinkingIndicator } from '@/features/ai/components/AIThinkingIndicator';
+import { PlannerTab } from '@/features/ai/components/PlannerTab';
 import { describeSchedule } from '@/features/habits/constants';
 import { errorMessage } from '@/services/api/errors';
 import { colors, radius, spacing } from '@/theme';
 import type { AIRecommendation, AIStatus } from '@/types/api';
 
-type Tab = 'ideas' | 'chat';
+type Tab = 'ideas' | 'plan' | 'chat';
 
 const DISABLED_TEXT: Record<NonNullable<AIStatus['reason']>, string> = {
   NOT_CONFIGURED: 'AI зөвлөгч одоогоор тохируулагдаагүй байна. Аппын бусад хэсэг хэвийн ажиллана.',
@@ -58,7 +59,8 @@ export default function AICoachScreen() {
           onChange={setTab}
           accessibilityLabel="AI зөвлөгчийн хэсэг"
           options={[
-            { value: 'ideas', label: 'Дадлын санал' },
+            { value: 'ideas', label: 'Санал' },
+            { value: 'plan', label: 'Төлөвлөгөө' },
             { value: 'chat', label: 'Ярилцах' },
           ]}
         />
@@ -85,6 +87,8 @@ export default function AICoachScreen() {
         />
       ) : tab === 'ideas' ? (
         <IdeasTab />
+      ) : tab === 'plan' ? (
+        <PlannerTab />
       ) : (
         <ChatTab />
       )}

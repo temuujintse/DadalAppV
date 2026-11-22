@@ -39,7 +39,7 @@ import {
   HabitType,
 } from '../../generated/prisma/enums';
 
-function IsLocalDateString(options?: ValidationOptions) {
+export function IsLocalDateString(options?: ValidationOptions) {
   return (object: object, propertyName: string) =>
     registerDecorator({
       name: 'isLocalDateString',

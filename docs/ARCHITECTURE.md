@@ -228,4 +228,10 @@ Dadal/
 - API: `GET /ai/status`, `GET|PATCH /ai/preferences`, `POST|GET /ai/coach/recommendations`, `POST /ai/coach/recommendations/:id/accept|reject`, `POST /ai/coach/chat`, `GET /ai/conversations`, `GET|DELETE /ai/conversations/:id`.
 - Тест: unit 10 (guards, proposal validation, prompts), e2e 10 (stub provider: идэвхгүй төлөв, PII-гүй prompt, idempotency, accept/reject/хугацаа, алдааны зураглал + usage log, квот, opt-out, чат + replay + тусгаарлалт).
 - Mobile: `app/ai/coach.tsx` (Дадлын санал | Ярилцах), Нүүрний "AI зөвлөгч" карт (AI идэвхтэй үед л). 
-- Дараагийн AI phase: Smart Planner → Pet Companion → Analytics → Security & Optimization.
+
+### AI Phase 3–5 (2026-11-22)
+- **Smart Planner** (`src/ai/planner`): өнөөдрийн биелээгүй дадлууд AI-д `h1, h2…` гэсэн богино ref-ээр (DB id биш) очно; strict schema-д ref enum. Backend шалгалт: зөвхөн нээлттэй дадал, хэрэглэгчийн цагийн хүрээнд, давхцлыг дараалуулж зөөнө, хүрээнээс гарсныг хасна, `availableMinutesPerDay`-ээс хэтэрвэл OVERLOAD анхааруулга, өчигдрийн төлөвлөгөөний гүйцэтгэлийг context-д. DRAFT → хэрэглэгч баталгаажуулбал ACTIVE (өдөрт нэг), regenerate анхны цагийн хүрээг ашиглана. API: `POST /ai/planner/generate`, `GET /ai/planner`, `POST /ai/planner/:id/confirm|regenerate`.
+- **Pet Companion** (`src/ai/pet`): template-first — GREETING/HABIT_COMPLETED/PET_CARE зэрэг нь AI дуудахгүй; STREAK_MILESTONE/LEVEL_UP/INACTIVE_RETURN/DAILY_GOAL_COMPLETED-д AI өдөрт нэг удаа (cache), алдаа/квот/идэвхгүй үед template. AI-ийн EXCITED→CELEBRATE, CARING→CARE. Event-ийг server тооцоолно. `POST /ai/pet/interact`.
+- **Analytics** (`src/ai/analytics`): сүүлийн бүтэн 7 хоног (Да–Ня) / сар, өмнөх үетэй харьцуулалт, хамгийн сайн/анхаарах дадал, гарагийн хэв маяг, дундаж streak — бүгд backend. AI тайлбар үүсгэх бүрт текстийн тоо бүр metrics-д байгаа эсэхийг шалгаж, зохиосон тоотой бол татгалзана. Нэг үед нэг insight (`AIInsight` unique), metrics AI-гүй ч буцна. `GET /ai/analytics/weekly|monthly`.
+- Тест: backend unit 71, e2e 131 (+ planner 3, pet 3, analytics 2). Mobile: AI зөвлөгчид "Төлөвлөгөө" таб, Pet дэлгэцэд яриа (bubble), "Миний ахиц" → "Ахицын тайлан".
+- Дараагийн AI phase: Phase 6 Security & Optimization.

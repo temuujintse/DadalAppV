@@ -1,9 +1,11 @@
+import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Lock, Sparkles, Trophy } from 'lucide-react-native';
+import { Lock, Sparkles, Trophy, BarChart3 } from 'lucide-react-native';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { AppText } from '@/components/ui/AppText';
 import { BackHeader } from '@/components/ui/BackHeader';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Screen } from '@/components/ui/Screen';
@@ -44,6 +46,12 @@ export default function ProgressScreen() {
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
       <BackHeader title="Миний ахиц" />
+      <Button
+        title="Ахицын тайлан (AI тайлбартай)"
+        variant="secondary"
+        icon={<BarChart3 size={18} color={colors.text} />}
+        onPress={() => router.push('/ai/insights')}
+      />
 
       <Animated.View entering={FadeInDown.duration(300)}>
         <Card style={styles.hero}>

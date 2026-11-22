@@ -216,6 +216,9 @@ model User {
   aiConversations    AIConversation[]
   aiRecommendations  AIRecommendation[]
   aiUsage            AIUsageLog[]
+  aiPlans            AIPlan[]
+  aiInsights         AIInsight[]
+  aiPetInteractions  AIPetInteraction[]
   pushTokens         PushToken[]
   familyMembership   FamilyMember?
   createdFamilies    Family[]           @relation("FamilyCreatedBy")
@@ -410,6 +413,7 @@ model Habit {
   scheduleDays      HabitScheduleDay[]
   completions       HabitCompletion[]
   aiRecommendations AIRecommendation[]
+  aiPlanItems       AIPlanItem[]
   streaks           HabitStreak[]
   familyStreak      FamilyHabitStreak?
 
@@ -611,6 +615,7 @@ model UserPet {
   createdAt          DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime  @updatedAt @db.Timestamptz(3)
 
+  aiInteractions AIPetInteraction[]
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   careActions    PetCareAction[]
   accessories    UserPetAccessory[]
@@ -956,4 +961,90 @@ model AIUsageLog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+enum AIPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum AIInsightPeriod {
+  WEEKLY
+  MONTHLY
+}
+
+enum AIPetSource {
+  TEMPLATE
+  AI
+}
+
+/// Proposed day plan. Only DRAFT plans the user confirms become ACTIVE (one per user and day).
+model AIPlan {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String       @db.Uuid
+  planDate    DateTime     @db.Date
+  status      AIPlanStatus @default(DRAFT)
+  requestKey  String       @db.VarChar(80)
+  /// summary + backend-computed warnings (overload, conflicts)
+  payload     Json
+  confirmedAt DateTime?    @db.Timestamptz(3)
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items AIPlanItem[]
+
+  @@unique([userId, requestKey])
+  @@index([userId, planDate, status])
+}
+
+model AIPlanItem {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  planId          String  @db.Uuid
+  habitId         String  @db.Uuid
+  /// Local "HH:mm"
+  startTime       String  @db.VarChar(5)
+  durationMinutes Int
+  order           Int
+  note            String? @db.VarChar(200)
+
+  plan  AIPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  habit Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([planId, order])
+}
+
+/// AI explanation of backend-computed metrics; one per user and period (never regenerated).
+model AIInsight {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String          @db.Uuid
+  periodType AIInsightPeriod
+  /// e.g. "W2026-11-16" (Monday) or "M2026-10"
+  periodKey  String          @db.VarChar(20)
+  metrics    Json
+  insight    Json
+  createdAt  DateTime        @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodType, periodKey])
+}
+
+model AIPetInteraction {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String      @db.Uuid
+  petId           String      @db.Uuid
+  event           String      @db.VarChar(40)
+  message         String      @db.VarChar(300)
+  emotion         String      @db.VarChar(20)
+  animation       String      @db.VarChar(20)
+  suggestedAction String      @db.VarChar(30)
+  source          AIPetSource
+  createdAt       DateTime    @default(now()) @db.Timestamptz(3)
+
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet  UserPet @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([userId, event, createdAt])
 }

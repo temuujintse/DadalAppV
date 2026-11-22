@@ -174,6 +174,7 @@ function RootNavigator() {
           <Stack.Screen name="pet" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="ai/coach" />
+          <Stack.Screen name="ai/insights" />
         </Stack.Protected>
 
         <Stack.Protected guard={signedIn}>

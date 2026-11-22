@@ -572,3 +572,71 @@ export interface AIChatResult {
   userMessage: AIMessage;
   assistantMessage: AIMessage;
 }
+
+export interface AIPlanItem {
+  id: string;
+  habitId: string;
+  title: string;
+  startTime: string;
+  durationMinutes: number;
+  order: number;
+  note: string | null;
+  completed: boolean;
+}
+
+export interface AIPlan {
+  id: string;
+  date: string;
+  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  summary: string;
+  warnings: { code: string; message: string }[];
+  items: AIPlanItem[];
+  totalMinutes: number;
+  confirmedAt: string | null;
+  createdAt: string;
+}
+
+export interface AIDayPlans {
+  date: string;
+  active: AIPlan | null;
+  draft: AIPlan | null;
+}
+
+export interface PetInteraction {
+  event: string;
+  message: string;
+  emotion: string;
+  animation: 'IDLE' | 'HAPPY' | 'CARE' | 'SLEEPING' | 'CELEBRATE' | 'LEVEL_UP';
+  suggestedAction: 'VIEW_PROGRESS' | 'COMPLETE_HABIT' | 'CARE_PET' | 'VIEW_QUESTS' | 'NONE';
+  source: 'TEMPLATE' | 'AI';
+}
+
+export interface HabitMetrics {
+  periodType: 'WEEKLY' | 'MONTHLY';
+  periodKey: string;
+  from: string;
+  to: string;
+  scheduled: number;
+  completed: number;
+  completionRate: number;
+  activeHabits: number;
+  previous: { scheduled: number; completed: number; completionRate: number };
+  rateChange: number;
+  bestHabit: { title: string; completionRate: number } | null;
+  leastConsistentHabit: { title: string; completionRate: number } | null;
+  averageCurrentStreak: number;
+  byWeekday: number[];
+}
+
+export interface AIAnalytics {
+  metrics: HabitMetrics;
+  insight: {
+    summary: string;
+    positiveHighlights: string[];
+    improvementAreas: string[];
+    suggestions: string[];
+    periodComparison: string;
+  } | null;
+  insightStatus: 'READY' | 'NO_DATA' | 'DISABLED' | 'UNAVAILABLE';
+  insightMessage: string | null;
+}

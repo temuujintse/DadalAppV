@@ -50,4 +50,7 @@ export const queryKeys = {
   aiRecommendations: ['ai', 'recommendations'] as const,
   aiConversations: ['ai', 'conversations'] as const,
   aiConversation: (id: string) => ['ai', 'conversations', id] as const,
+  aiPlans: ['ai', 'planner'] as const,
+  aiPet: ['ai', 'pet'] as const,
+  aiAnalytics: (period: string) => ['ai', 'analytics', period] as const,
 };

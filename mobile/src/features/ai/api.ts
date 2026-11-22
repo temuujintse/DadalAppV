@@ -3,6 +3,10 @@ import { randomUUID } from 'expo-crypto';
 import { api } from '@/services/api/client';
 import { queryClient, queryKeys } from '@/services/query-client';
 import type {
+  AIAnalytics,
+  AIDayPlans,
+  AIPlan,
+  PetInteraction,
   AIChatResult,
   AIConversation,
   AIConversationSummary,
@@ -91,5 +95,53 @@ export function useDeleteConversation() {
   return useMutation({
     mutationFn: (id: string) => api.delete<null>(`/ai/conversations/${id}`),
     onSettled: refreshAI,
+  });
+}
+
+// ───────────── Smart Planner ─────────────
+
+export function useDayPlans() {
+  return useQuery({ queryKey: queryKeys.aiPlans, queryFn: () => api.get<AIDayPlans>('/ai/planner') });
+}
+
+export function useGeneratePlan() {
+  return useMutation({
+    mutationFn: (body: { idempotencyKey: string; availableFrom?: string; availableTo?: string }) =>
+      api.post<AIPlan>('/ai/planner/generate', body),
+    onSettled: refreshAI,
+  });
+}
+
+export function useConfirmPlan() {
+  return useMutation({
+    mutationFn: (id: string) => api.post<AIPlan>(`/ai/planner/${id}/confirm`),
+    onSettled: refreshAI,
+  });
+}
+
+export function useRegeneratePlan() {
+  return useMutation({
+    mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
+      api.post<AIPlan>(`/ai/planner/${id}/regenerate`, { idempotencyKey }),
+    onSettled: refreshAI,
+  });
+}
+
+// ───────────── Pet companion & analytics ─────────────
+
+/** Pet speech bubble: templates offline-first on the server; works even when AI is off. */
+export function usePetInteraction() {
+  return useQuery({
+    queryKey: queryKeys.aiPet,
+    queryFn: () => api.post<PetInteraction>('/ai/pet/interact', {}),
+    staleTime: 10 * 60_000,
+  });
+}
+
+export function useAnalytics(period: 'weekly' | 'monthly') {
+  return useQuery({
+    queryKey: queryKeys.aiAnalytics(period),
+    queryFn: () => api.get<AIAnalytics>(`/ai/analytics/${period}`),
+    staleTime: 60 * 60_000,
   });
 }

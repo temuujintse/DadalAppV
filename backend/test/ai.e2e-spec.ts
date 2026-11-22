@@ -2,38 +2,10 @@ import { INestApplication } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import type { App } from 'supertest/types';
-import {
-  AI_PROVIDER,
-  AIProvider,
-  AIProviderError,
-  AIRequest,
-  AIResult,
-} from '../src/ai/ai-provider.interface';
+import { AI_PROVIDER, AIProviderError } from '../src/ai/ai-provider.interface';
+import { StubProvider } from './ai-stub';
 import { PrismaService } from '../src/database/prisma.service';
 import { API, auth, createTestApp, registerUser, resetDatabase, TestUser } from './helpers';
-
-/** Programmable stand-in for OpenAI: no network, records every request. */
-class StubProvider implements AIProvider {
-  readonly name = 'stub';
-  readonly model = 'stub-1';
-  configured = true;
-  calls: AIRequest[] = [];
-  next: (req: AIRequest) => unknown = () => ({ recommendations: [] });
-
-  // Synchronous on purpose (the interface returns a Promise); errors thrown by `next`
-  // surface as rejections, like a real provider call.
-  generate(req: AIRequest): Promise<AIResult> {
-    this.calls.push(req);
-    return new Promise((resolve) => {
-      resolve({
-        data: this.next(req),
-        model: this.model,
-        requestId: `req_${this.calls.length}`,
-        usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
-      });
-    });
-  }
-}
 
 const rec = (title: string, over: Record<string, unknown> = {}) => ({
   title,

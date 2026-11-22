@@ -59,6 +59,12 @@ export const envSchema = z.object({
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(200).max(16_000).default(1_200),
   AI_CONVERSATION_RETENTION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 
+  /** Upsert reference catalogs after the server starts (single-container hosts like Render). */
+  SEED_ON_BOOT: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+
   RATE_LIMIT_DEFAULT: z.coerce.number().int().positive().default(120),
   RATE_LIMIT_AUTH: z.coerce.number().int().positive().default(10),
 });

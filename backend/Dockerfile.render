@@ -2,7 +2,9 @@
 #
 # Family Habit API — image for Render (and other single-container hosts).
 # Render runs one container per service and its free plan has no pre-deploy hook, so this
-# image applies migrations and the idempotent reference seed on start, then boots the API.
+# image applies migrations on start, then boots the API, which upserts the reference catalogs
+# after it starts listening (SEED_ON_BOOT). Nothing is compiled at runtime: the free plan's
+# small CPU share made a TypeScript seed step outlast Render's port-scan timeout.
 # `prisma migrate deploy` takes a database advisory lock, so concurrent starts are safe.
 # For a self-managed server prefer ./Dockerfile (slim runtime + separate migrate job).
 
@@ -24,7 +26,7 @@ COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 COPY src ./src
 RUN npm run build
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production SEED_ON_BOOT=true
 USER node
 EXPOSE 10000
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && exec node dist/main"]
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && exec node dist/main"]

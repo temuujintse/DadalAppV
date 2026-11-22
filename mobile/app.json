@@ -44,6 +44,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "055fa4d2-0858-4528-bae7-1b5c94a885f5"
+      }
+    },
+    "owner": "tsemiku21"
   }
 }

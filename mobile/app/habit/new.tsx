@@ -41,6 +41,7 @@ export default function NewHabitScreen() {
             scheduleDays: v.scheduleDays,
             startDate: v.startDate,
             endDate: v.endDate ?? undefined,
+            reminderTime: v.reminderTime ?? undefined,
           },
           {
             onSuccess: () => {

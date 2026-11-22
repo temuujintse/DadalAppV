@@ -18,6 +18,7 @@ import { displayNameSchema } from '@/features/auth/schemas';
 import { ROLE_LABELS } from '@/features/family/roles';
 import { useUpdateProfile } from '@/features/profile/api';
 import { MotionCard } from '@/features/profile/components/MotionCard';
+import { NotificationsCard } from '@/features/notifications/components/NotificationsCard';
 import { SyncCard } from '@/features/sync/components/SyncCard';
 import { errorMessage } from '@/services/api/errors';
 import { selectPendingCount, useOutboxStore } from '@/services/offline/outbox';
@@ -130,6 +131,8 @@ export default function ProfileScreen() {
           />
         ) : null}
       </Card>
+
+      <NotificationsCard />
 
       <MotionCard />
 

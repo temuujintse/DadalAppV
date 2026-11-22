@@ -12,6 +12,7 @@ import { FamilyAccessService } from '../families/family-access.service';
 import { canInviteAs, FamilyPermission } from '../families/family-policy';
 import { Prisma } from '../generated/prisma/client';
 import { CreatedInviteDto, CreateInviteDto, InviteDto } from './dto/invite.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const CODE_LENGTH = 10;
 
@@ -25,6 +26,7 @@ export class InvitesService {
     private readonly access: FamilyAccessService,
     private readonly families: FamiliesService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
     config: ConfigService<Env, true>,
   ) {
     this.secret = config.get('INVITE_TOKEN_SECRET', { infer: true });
@@ -116,8 +118,9 @@ export class InvitesService {
     if (normalized.length !== CODE_LENGTH) throw this.invalidInvite();
     const tokenHash = this.hashCode(normalized);
 
+    let joinedFamilyId: string | null = null;
     try {
-      await this.prisma.$transaction(async (tx) => {
+      joinedFamilyId = await this.prisma.$transaction(async (tx) => {
         const invite = await tx.familyInvite.findUnique({
           where: { tokenHash },
           include: { family: true },
@@ -178,6 +181,7 @@ export class InvitesService {
           },
           tx,
         );
+        return invite.familyId;
       });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
@@ -188,6 +192,7 @@ export class InvitesService {
       }
       throw err;
     }
+    if (joinedFamilyId) this.notifications.memberJoined(joinedFamilyId, userId);
     return this.families.getCurrent(userId);
   }
 

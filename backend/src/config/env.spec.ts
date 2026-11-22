@@ -32,3 +32,17 @@ describe('validateEnv', () => {
     ).toBe('https://app.example.com');
   });
 });
+
+describe('optional integrations', () => {
+  const base = {
+    DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+    JWT_ACCESS_SECRET: 'x'.repeat(32),
+    INVITE_TOKEN_SECRET: 'y'.repeat(32),
+  };
+  it('treats empty strings as unset', () => {
+    const env = validateEnv({ ...base, RESEND_API_KEY: '', MAIL_FROM: ' ', EXPO_ACCESS_TOKEN: '' });
+    expect(env.RESEND_API_KEY).toBeUndefined();
+    expect(env.EXPO_ACCESS_TOKEN).toBeUndefined();
+    expect(env.MAIL_FROM).toContain('Family Habit');
+  });
+});

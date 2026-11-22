@@ -174,6 +174,12 @@ enum NotificationType {
   REWARD_APPROVED
   REWARD_REQUESTED
   PET_ACCESSORY_UNLOCKED
+  REWARD_REJECTED
+}
+
+enum PushPlatform {
+  IOS
+  ANDROID
 }
 
 enum SyncOperationType {
@@ -205,25 +211,27 @@ model User {
 
   profile            UserProfile?
   sessions           AuthSession[]
+  passwordResets     PasswordReset[]
+  pushTokens         PushToken[]
   familyMembership   FamilyMember?
-  createdFamilies    Family[]               @relation("FamilyCreatedBy")
-  createdInvites     FamilyInvite[]         @relation("InviteCreatedBy")
-  createdHabits      Habit[]                @relation("HabitCreator")
-  habitAssignments   HabitAssignment[]      @relation("AssignmentUser")
-  assignmentsMade    HabitAssignment[]      @relation("AssignmentAssignedBy")
-  completions        HabitCompletion[]      @relation("CompletionOwner")
-  completionsDone    HabitCompletion[]      @relation("CompletionActor")
+  createdFamilies    Family[]           @relation("FamilyCreatedBy")
+  createdInvites     FamilyInvite[]     @relation("InviteCreatedBy")
+  createdHabits      Habit[]            @relation("HabitCreator")
+  habitAssignments   HabitAssignment[]  @relation("AssignmentUser")
+  assignmentsMade    HabitAssignment[]  @relation("AssignmentAssignedBy")
+  completions        HabitCompletion[]  @relation("CompletionOwner")
+  completionsDone    HabitCompletion[]  @relation("CompletionActor")
   habitStreaks       HabitStreak[]
   gamification       UserGamification?
   xpTransactions     XPTransaction[]
   pet                UserPet?
   petCareActions     PetCareAction[]
   questProgress      QuestProgress[]
-  createdQuests      Quest[]                @relation("QuestCreatedBy")
+  createdQuests      Quest[]            @relation("QuestCreatedBy")
   achievements       UserAchievement[]
-  createdRewards     Reward[]               @relation("RewardCreatedBy")
-  redemptions        RewardRedemption[]     @relation("RedemptionRequester")
-  decidedRedemptions RewardRedemption[]     @relation("RedemptionDecider")
+  createdRewards     Reward[]           @relation("RewardCreatedBy")
+  redemptions        RewardRedemption[] @relation("RedemptionRequester")
+  decidedRedemptions RewardRedemption[] @relation("RedemptionDecider")
   notifications      Notification[]
   syncOperations     SyncOperation[]
 
@@ -250,6 +258,35 @@ model UserProfile {
 
 /// One row per signed-in device. The refresh token is opaque ("<sessionId>.<secret>");
 /// only a SHA-256 hash of the secret is stored. Rotated on every refresh.
+/// One-time password reset code (6 digits, e-mailed). Only an HMAC of the code is stored.
+model PasswordReset {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @db.Uuid
+  codeHash  String    @db.VarChar(128)
+  attempts  Int       @default(0)
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+/// Expo push token of a signed-in device. A token belongs to the user who registered it last.
+model PushToken {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String       @db.Uuid
+  token     String       @unique @db.VarChar(255)
+  platform  PushPlatform
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime     @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 model AuthSession {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId           String    @db.Uuid
@@ -270,32 +307,32 @@ model AuthSession {
 // ───────────────────────────── Family ─────────────────────────────
 
 model Family {
-  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String     @db.VarChar(60)
-  avatarKey   String     @default("home") @db.VarChar(40)
-  timezone    String     @default("Asia/Ulaanbaatar") @db.VarChar(64)
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String     @db.VarChar(60)
+  avatarKey          String     @default("home") @db.VarChar(40)
+  timezone           String     @default("Asia/Ulaanbaatar") @db.VarChar(64)
   /// Subscription-ready: v1 is FREE with unlimited members (memberLimit = null).
-  plan        FamilyPlan @default(FREE)
-  memberLimit Int?
+  plan               FamilyPlan @default(FREE)
+  memberLimit        Int?
   /// Family setting (OWNER/PARENT): show the in-family XP leaderboard. Child-safety opt-out.
-  leaderboardEnabled Boolean @default(true)
-  createdById String     @db.Uuid
-  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
-  deletedAt   DateTime?  @db.Timestamptz(3)
+  leaderboardEnabled Boolean    @default(true)
+  createdById        String     @db.Uuid
+  createdAt          DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime   @updatedAt @db.Timestamptz(3)
+  deletedAt          DateTime?  @db.Timestamptz(3)
 
-  createdBy          User                @relation("FamilyCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  members            FamilyMember[]
-  invites            FamilyInvite[]
-  habits             Habit[]
-  completions        HabitCompletion[]
-  sharedStreaks      FamilyHabitStreak[]
-  gamification       FamilyGamification?
-  xpTransactions     XPTransaction[]
-  quests             Quest[]
-  questProgress      QuestProgress[]
-  rewards            Reward[]
-  redemptions        RewardRedemption[]
+  createdBy      User                @relation("FamilyCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  members        FamilyMember[]
+  invites        FamilyInvite[]
+  habits         Habit[]
+  completions    HabitCompletion[]
+  sharedStreaks  FamilyHabitStreak[]
+  gamification   FamilyGamification?
+  xpTransactions XPTransaction[]
+  quests         Quest[]
+  questProgress  QuestProgress[]
+  rewards        Reward[]
+  redemptions    RewardRedemption[]
 
   @@index([deletedAt])
 }
@@ -405,20 +442,20 @@ model HabitScheduleDay {
 ///   SHARED                → "<habitId>:shared:<YYYY-MM-DD>"   (userId = null)
 /// `idempotencyKey` is client-generated and scoped to the acting user.
 model HabitCompletion {
-  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  habitId        String           @db.Uuid
-  familyId       String?          @db.Uuid
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  habitId         String           @db.Uuid
+  familyId        String?          @db.Uuid
   /// Owner of the completion. NULL for SHARED family habits.
-  userId         String?          @db.Uuid
+  userId          String?          @db.Uuid
   /// The member who actually tapped "complete".
-  completedById  String           @db.Uuid
-  localDate      DateTime         @db.Date
-  completionKey  String           @unique @db.VarChar(120)
-  idempotencyKey String           @db.VarChar(64)
-  note           String?          @db.VarChar(280)
-  source         CompletionSource @default(ONLINE)
-  clientCreatedAt DateTime?       @db.Timestamptz(3)
-  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  completedById   String           @db.Uuid
+  localDate       DateTime         @db.Date
+  completionKey   String           @unique @db.VarChar(120)
+  idempotencyKey  String           @db.VarChar(64)
+  note            String?          @db.VarChar(280)
+  source          CompletionSource @default(ONLINE)
+  clientCreatedAt DateTime?        @db.Timestamptz(3)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
 
   habit       Habit   @relation(fields: [habitId], references: [id], onDelete: Restrict)
   family      Family? @relation(fields: [familyId], references: [id], onDelete: Restrict)
@@ -469,15 +506,15 @@ model FamilyHabitStreak {
 /// Read-optimised aggregate. Source of truth is the XPTransaction ledger.
 /// lifetimeXP drives the level (never decreases on spending); balanceXP is spendable on rewards.
 model UserGamification {
-  userId            String    @id @db.Uuid
-  lifetimeXP        Int       @default(0)
-  balanceXP         Int       @default(0)
-  level             Int       @default(1)
-  totalCompletions  Int       @default(0)
+  userId             String    @id @db.Uuid
+  lifetimeXP         Int       @default(0)
+  balanceXP          Int       @default(0)
+  level              Int       @default(1)
+  totalCompletions   Int       @default(0)
   /// Number of distinct local days with at least one completion.
-  completionDays    Int       @default(0)
+  completionDays     Int       @default(0)
   lastCompletionDate DateTime? @db.Date
-  updatedAt         DateTime  @updatedAt @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -555,19 +592,19 @@ model UserAchievement {
 // ───────────────────────────── Pet ─────────────────────────────
 
 model UserPet {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId     String    @unique @db.Uuid
-  name       String    @default("Бамбаа") @db.VarChar(30)
-  species    String    @default("FOX") @db.VarChar(30)
-  level      Int       @default(1)
-  lifetimeXP Int       @default(0)
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String    @unique @db.Uuid
+  name               String    @default("Бамбаа") @db.VarChar(30)
+  species            String    @default("FOX") @db.VarChar(30)
+  level              Int       @default(1)
+  lifetimeXP         Int       @default(0)
   /// 0–100 as of `happinessUpdatedAt`. Read-time decay is gentle and floored (never punitive);
   /// neglect never removes XP, level or accessories.
   happiness          Int       @default(80)
   happinessUpdatedAt DateTime  @default(now()) @db.Timestamptz(3)
   lastCaredAt        DateTime? @db.Timestamptz(3)
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
+  createdAt          DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(3)
 
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   careActions    PetCareAction[]

@@ -195,6 +195,7 @@ export class HabitsService {
           difficulty: dto.difficulty ?? 'EASY',
           startDate: toDbDate(startDate),
           endDate: dto.endDate ? toDbDate(dto.endDate) : null,
+          reminderTime: dto.reminderTime ?? null,
           timezone,
           scheduleDays: { createMany: { data: dto.scheduleDays.map((weekday) => ({ weekday })) } },
           assignments: {
@@ -242,6 +243,7 @@ export class HabitsService {
           status: dto.status,
           endDate:
             dto.endDate === undefined ? undefined : dto.endDate ? toDbDate(dto.endDate) : null,
+          reminderTime: dto.reminderTime === undefined ? undefined : dto.reminderTime,
         },
       });
       if (dto.scheduleDays) {
@@ -421,6 +423,7 @@ export class HabitsService {
         status: habit.status,
         startDate: fromDbDate(habit.startDate),
         endDate: habit.endDate ? fromDbDate(habit.endDate) : null,
+        reminderTime: habit.reminderTime,
         timezone: habit.timezone,
         scheduleDays,
         familyId: habit.familyId,

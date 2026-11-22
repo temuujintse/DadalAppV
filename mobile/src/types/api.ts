@@ -121,6 +121,8 @@ export interface Habit {
   endDate: string | null;
   timezone: string;
   scheduleDays: number[];
+  /** Local "HH:mm" reminder time, or null */
+  reminderTime: string | null;
   familyId: string | null;
   creatorId: string;
   assignees: PersonRef[];
@@ -288,6 +290,7 @@ export interface CreateHabitBody {
   scheduleDays: number[];
   startDate?: string;
   endDate?: string;
+  reminderTime?: string;
 }
 
 export interface UpdateHabitBody {
@@ -298,6 +301,7 @@ export interface UpdateHabitBody {
   difficulty?: HabitDifficulty;
   scheduleDays?: number[];
   endDate?: string | null;
+  reminderTime?: string | null;
   status?: 'ACTIVE' | 'ARCHIVED';
 }
 
@@ -488,4 +492,29 @@ export interface SyncStatus {
     createdAt: string;
     processedAt: string | null;
   }[];
+}
+
+// ─── Notifications ───
+
+export type NotificationType =
+  | 'HABIT_REMINDER'
+  | 'DAILY_PROGRESS'
+  | 'STREAK_REMINDER'
+  | 'QUEST_COMPLETED'
+  | 'LEVEL_UP'
+  | 'ACHIEVEMENT_UNLOCKED'
+  | 'FAMILY_ACTIVITY'
+  | 'REWARD_APPROVED'
+  | 'REWARD_REQUESTED'
+  | 'PET_ACCESSORY_UNLOCKED'
+  | 'REWARD_REJECTED';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data: { route?: string } & Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
 }

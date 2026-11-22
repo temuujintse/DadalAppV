@@ -15,6 +15,7 @@ import {
   RewardDto,
   UpdateRewardDto,
 } from './dto/reward.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const PROFILE = { select: { displayName: true, avatarKey: true } } as const;
 
@@ -38,6 +39,7 @@ export class RewardsService {
     private readonly access: FamilyAccessService,
     private readonly ledger: XpLedgerService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ───────────────────────────── Catalog ─────────────────────────────
@@ -215,6 +217,7 @@ export class RewardsService {
         );
         return redemption;
       });
+      this.notifications.redemptionRequested(membership.familyId, userId, created.reward.title);
       return this.toDto(created, userId, membership, managers);
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
@@ -250,7 +253,7 @@ export class RewardsService {
   }
 
   async approve(userId: string, id: string, note?: string): Promise<RedemptionDecisionResultDto> {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const { membership, row } = await this.loadForDecision(tx, userId, id);
       await this.transition(tx, row.id, 'PENDING', {
         status: 'APPROVED',
@@ -291,10 +294,16 @@ export class RewardsService {
         requesterWallet: after ?? { ...wallet, leveledUp: false },
       };
     });
+    this.notifications.redemptionDecided(
+      result.redemption.requester.userId,
+      true,
+      result.redemption.reward.title,
+    );
+    return result;
   }
 
   async reject(userId: string, id: string, note?: string): Promise<RedemptionDecisionResultDto> {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const { membership, row } = await this.loadForDecision(tx, userId, id);
       await this.transition(tx, row.id, 'PENDING', {
         status: 'REJECTED',
@@ -317,6 +326,12 @@ export class RewardsService {
         requesterWallet: null,
       };
     });
+    this.notifications.redemptionDecided(
+      result.redemption.requester.userId,
+      false,
+      result.redemption.reward.title,
+    );
+    return result;
   }
 
   /** Approved reward was actually handed over. */

@@ -17,6 +17,8 @@ import { GamificationModule } from './gamification/gamification.module';
 import { HabitsModule } from './habits/habits.module';
 import { HealthController } from './health/health.controller';
 import { InvitesModule } from './invites/invites.module';
+import { MailModule } from './mail/mail.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PetsModule } from './pets/pets.module';
 import { QuestsModule } from './quests/quests.module';
 import { RewardsModule } from './rewards/rewards.module';
@@ -52,6 +54,8 @@ import { UsersModule } from './users/users.module';
     }),
     DatabaseModule,
     AuditModule,
+    MailModule,
+    NotificationsModule,
     AuthModule,
     UsersModule,
     FamiliesModule,

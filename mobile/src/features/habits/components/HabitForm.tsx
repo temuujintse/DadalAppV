@@ -6,6 +6,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { DateField } from '@/components/ui/DateField';
+import { TimeField } from '@/components/ui/TimeField';
 import { FormError } from '@/components/ui/FormError';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
@@ -311,6 +312,18 @@ export function HabitForm({
             clearable
             onChange={field.onChange}
             error={errors.endDate?.message}
+          />
+        )}
+      />
+      <Controller
+        control={control}
+        name="reminderTime"
+        render={({ field }) => (
+          <TimeField
+            label="Сануулга (заавал биш)"
+            value={field.value}
+            onChange={field.onChange}
+            hint="Хуваарьт өдрүүдэд энэ цагт утсан дээр сануулна. Биелүүлсэн өдөр сануулахгүй."
           />
         )}
       />

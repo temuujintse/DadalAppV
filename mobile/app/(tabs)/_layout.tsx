@@ -1,12 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router/js-tabs';
 import { Gift, Home, ListChecks, Target, Users } from 'lucide-react-native';
+import { useNotificationsRuntime } from '@/features/notifications/hooks';
 import { colors, fonts, motion } from '@/theme';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 
 /** Bottom tabs in spec order: Home, Habits, Quests, Family, Rewards. */
 export default function TabsLayout() {
   const reduceMotion = useReduceMotion();
+  useNotificationsRuntime();
 
   return (
     <Tabs

@@ -19,6 +19,9 @@ import { Button } from '@/components/ui/Button';
 import { ErrorState, LoadingState } from '@/components/ui/StateViews';
 import { useLogout, useMe } from '@/features/auth/api';
 import { CelebrationHost } from '@/features/gamification/components/CelebrationHost';
+import { loadNotificationPrefs } from '@/features/notifications/prefs.store';
+import { configureNotificationHandler } from '@/features/notifications/push';
+import { clearReminders } from '@/features/notifications/reminders';
 import { useAppStateFocus } from '@/hooks/useAppStateFocus';
 import { errorMessage } from '@/services/api/errors';
 import { startOfflineEngine } from '@/services/offline';
@@ -33,6 +36,7 @@ import { useReduceMotion } from '@/hooks/useReduceMotion';
 export const unstable_settings = { anchor: 'index' };
 
 void SplashScreen.preventAutoHideAsync();
+configureNotificationHandler();
 
 // Dev-only notice Reanimated prints whenever the in-app "Reduce motion" option is on (intended).
 LogBox.ignoreLogs(['Reduced motion setting is overwritten']);
@@ -50,8 +54,16 @@ export default function RootLayout() {
   useEffect(() => {
     const stop = startOfflineEngine();
     void loadMotionPreference();
+    void loadNotificationPrefs();
+    // A signed-out device keeps no habit reminders.
+    const stopReminderCleanup = useSessionStore.subscribe((s, prev) => {
+      if (prev.status === 'signedIn' && s.status === 'signedOut') void clearReminders();
+    });
     void useSessionStore.getState().bootstrap();
-    return stop;
+    return () => {
+      stop();
+      stopReminderCleanup();
+    };
   }, []);
 
   // Font failure must not block the app: fall back to system fonts.
@@ -160,6 +172,7 @@ function RootNavigator() {
           <Stack.Screen name="habit/[id]/edit" options={{ presentation: 'modal' }} />
           <Stack.Screen name="progress" />
           <Stack.Screen name="pet" />
+          <Stack.Screen name="notifications" />
         </Stack.Protected>
 
         <Stack.Protected guard={signedIn}>

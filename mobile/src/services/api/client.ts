@@ -4,7 +4,7 @@ import type { ErrorEnvelope, SuccessEnvelope, TokenPair } from '@/types/api';
 import { API_BASE_URL, REQUEST_TIMEOUT_MS } from './config';
 import { ApiError } from './errors';
 
-type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface RequestOptions {
   method?: Method;
@@ -115,6 +115,8 @@ export const api = {
     send<T>(path, { ...opts, method: 'POST', body }),
   patch: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'method' | 'body'>) =>
     send<T>(path, { ...opts, method: 'PATCH', body }),
-  delete: <T>(path: string, opts?: Omit<RequestOptions, 'method' | 'body'>) =>
+  put: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'method' | 'body'>) =>
+    send<T>(path, { ...opts, method: 'PUT', body }),
+  delete: <T>(path: string, opts?: Omit<RequestOptions, 'method'>) =>
     send<T>(path, { ...opts, method: 'DELETE' }),
 };

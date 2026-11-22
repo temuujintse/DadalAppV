@@ -45,3 +45,8 @@ services:
         value: '120'
       - key: RATE_LIMIT_AUTH
         value: '10'
+      # Password-reset e-mail (https://resend.com). Set the key in the Render dashboard.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false

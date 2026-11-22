@@ -4,6 +4,12 @@ import { z } from 'zod';
  * Environment contract. The app refuses to boot when a variable is missing or invalid,
  * so misconfiguration surfaces at deploy time instead of at the first request.
  */
+/** Hosting dashboards often set unused variables to "" — treat that as not set. */
+const emptyAsUndefined = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : undefined));
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -31,6 +37,14 @@ export const envSchema = z.object({
 
   /** How many past local days an offline completion may still be synced for (spec §15). */
   OFFLINE_SYNC_WINDOW_DAYS: z.coerce.number().int().min(0).max(14).default(3),
+
+  /** Password reset codes (e-mailed) stay valid this long. */
+  PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(15),
+  /** Resend API key for transactional e-mail; unset = codes are only logged (non-production). */
+  RESEND_API_KEY: emptyAsUndefined,
+  MAIL_FROM: emptyAsUndefined.transform((v) => v ?? 'Family Habit <onboarding@resend.dev>'),
+  /** Optional Expo access token when "enhanced push security" is enabled for the project. */
+  EXPO_ACCESS_TOKEN: emptyAsUndefined,
 
   RATE_LIMIT_DEFAULT: z.coerce.number().int().positive().default(120),
   RATE_LIMIT_AUTH: z.coerce.number().int().positive().default(10),

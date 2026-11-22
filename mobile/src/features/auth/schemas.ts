@@ -34,3 +34,22 @@ export const registerSchema = z.object({
 
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
+
+export const forgotSchema = z.object({ email: emailSchema });
+
+export const resetSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, 'Имэйлээр ирсэн 6 оронтой кодыг оруулна уу.'),
+    password: passwordSchema,
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ['confirm'],
+    message: 'Нууц үг таарахгүй байна.',
+  });
+
+export type ForgotForm = z.infer<typeof forgotSchema>;
+export type ResetForm = z.infer<typeof resetSchema>;

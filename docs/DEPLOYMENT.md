@@ -70,6 +70,8 @@ docker compose ... exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" -d "$P
 4. Шалгах: `https://<хаяг>/api/v1/health` → `{"status":"ok","database":"up"}`.
 5. EAS-д бүртгэх: `eas env:create --environment production --name EXPO_PUBLIC_API_URL --value https://<хаяг>/api/v1 --visibility plaintext`.
 
+Нууц үг сэргээх имэйлд Render → Environment-д `RESEND_API_KEY` (https://resend.com) болон `MAIL_FROM` (баталгаажсан домэйн, жишээ `Family Habit <no-reply@таны-домэйн>`) нэмнэ. Key байхгүй бол код илгээгдэхгүй (лог дээр алдаа). Push мэдэгдэл Expo-гоор дамждаг; iOS-д EAS build хийх үед "Push Notifications" credential-ийг зөвшөөрнө.
+
 `main` руу push хийх бүрд Render автоматаар дахин deploy хийнэ. Free plan: идэвхгүй үед service унтана (эхний хүсэлт ~1 мин), free DB хугацаатай — жинхэнэ хэрэглэгчдээс өмнө `plan`-уудыг төлбөртэй болгоно (Render-ийн одоогийн нөхцөлийг шалгана уу).
 
 ## 2. Mobile (EAS)

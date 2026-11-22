@@ -5,6 +5,8 @@ import { useSessionStore } from '@/store/session.store';
 import type { AuthResult, Me } from '@/types/api';
 import { deviceTimeZone } from '@/utils/device';
 import type { LoginForm, RegisterForm } from './schemas';
+import { removePushRegistration } from '@/features/notifications/push';
+import { clearReminders } from '@/features/notifications/reminders';
 
 async function startSession(result: AuthResult): Promise<void> {
   queryClient.setQueryData(queryKeys.me, result.user);
@@ -33,7 +35,9 @@ export function useRegister() {
 export function useLogout() {
   return useMutation({
     mutationFn: async () => {
-      // Best effort: revoke the server session, but always sign out locally.
+      // Best effort: stop pushes to this device, revoke the server session, always sign out locally.
+      await removePushRegistration();
+      await clearReminders();
       try {
         await api.post<null>('/auth/logout');
       } catch {
@@ -50,5 +54,19 @@ export function useMe() {
     queryKey: queryKeys.me,
     queryFn: () => api.get<Me>('/auth/me'),
     enabled: signedIn,
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post<null>('/auth/password/forgot', { email }, { auth: false }),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (body: { email: string; code: string; password: string }) =>
+      api.post<null>('/auth/password/reset', body, { auth: false }),
   });
 }

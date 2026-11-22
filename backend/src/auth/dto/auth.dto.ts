@@ -81,3 +81,30 @@ export class AuthResultDto {
   user: MeDto;
   tokens: TokenPairDto;
 }
+
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'bat@example.com' })
+  @NormalizeEmail()
+  @IsEmail()
+  @MaxLength(254)
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({ example: 'bat@example.com' })
+  @NormalizeEmail()
+  @IsEmail()
+  @MaxLength(254)
+  email: string;
+
+  @ApiProperty({ example: '482913', description: '6-digit code from the e-mail' })
+  @Matches(/^\d{6}$/, { message: 'code must be 6 digits' })
+  code: string;
+
+  @ApiProperty({ minLength: 8, maxLength: 128, description: 'Үсэг болон тоо агуулсан байх.' })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  @Matches(/^(?=.*\p{L})(?=.*\d).+$/u, { message: 'password must contain a letter and a digit' })
+  password: string;
+}

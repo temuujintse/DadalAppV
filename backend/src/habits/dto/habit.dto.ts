@@ -66,6 +66,9 @@ class ScheduleDaysField {
   scheduleDays: number[];
 }
 
+/** 00:00–23:59 */
+const REMINDER_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 export class CreateHabitDto extends ScheduleDaysField {
   @ApiProperty({ example: 'Өглөө 20 минут алхах', maxLength: 80 })
   @Trim()
@@ -134,6 +137,14 @@ export class CreateHabitDto extends ScheduleDaysField {
   @IsOptional()
   @IsLocalDateString()
   endDate?: string;
+
+  @ApiPropertyOptional({
+    example: '19:30',
+    description: 'Local reminder time "HH:mm" (device notification)',
+  })
+  @IsOptional()
+  @Matches(REMINDER_TIME, { message: 'reminderTime must be HH:mm' })
+  reminderTime?: string;
 }
 
 export class UpdateHabitDto {
@@ -182,6 +193,15 @@ export class UpdateHabitDto {
   @IsOptional()
   @IsLocalDateString()
   endDate?: string | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    example: '19:30',
+    description: 'null removes the reminder',
+  })
+  @IsOptional()
+  @Matches(REMINDER_TIME, { message: 'reminderTime must be HH:mm' })
+  reminderTime?: string | null;
 
   @ApiPropertyOptional({ enum: ['ACTIVE', 'ARCHIVED'] })
   @IsOptional()
@@ -307,6 +327,8 @@ export class HabitDto {
   status: HabitStatus;
   startDate: string;
   endDate: string | null;
+  /** Local "HH:mm" reminder time, or null */
+  reminderTime: string | null;
   timezone: string;
   scheduleDays: number[];
   familyId: string | null;

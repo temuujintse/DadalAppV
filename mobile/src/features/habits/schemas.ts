@@ -24,6 +24,10 @@ export const habitFormSchema = z
     scheduleDays: z.array(z.number().int().min(0).max(6)).min(1, 'Дор хаяж нэг өдөр сонгоно уу.'),
     startDate: z.string(),
     endDate: z.string().nullable(),
+    reminderTime: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.type === 'FAMILY' && v.assignedUserIds.length === 0) {
@@ -57,5 +61,6 @@ export function defaultHabitForm(): HabitFormValues {
     scheduleDays: [0, 1, 2, 3, 4, 5, 6],
     startDate: todayLocal(),
     endDate: null,
+    reminderTime: null,
   };
 }

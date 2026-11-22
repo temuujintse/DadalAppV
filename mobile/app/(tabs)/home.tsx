@@ -21,6 +21,7 @@ import { PetCard } from '@/features/pets/components/PetCard';
 import { useQuests } from '@/features/quests/api';
 import { DailyQuestCard } from '@/features/quests/components/DailyQuestCard';
 import { useMyGamification } from '@/features/gamification/api';
+import { BellButton } from '@/features/notifications/components/BellButton';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import { errorMessage } from '@/services/api/errors';
 import { colors, radius, spacing } from '@/theme';
@@ -81,6 +82,7 @@ export default function HomeScreen() {
             {greeting(now)}, {profile.displayName}!
           </AppText>
         </View>
+        <BellButton />
         <PressableScale
           onPress={() => router.push('/profile')}
           accessibilityRole="button"

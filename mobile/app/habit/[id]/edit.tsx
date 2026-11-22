@@ -30,6 +30,7 @@ export default function EditHabitScreen() {
             scheduleDays: habit.data.scheduleDays,
             startDate: habit.data.startDate,
             endDate: habit.data.endDate,
+            reminderTime: habit.data.reminderTime ?? null,
           }
         : null,
     // Initialise once per habit; later refetches must not reset the user's edits.
@@ -54,6 +55,7 @@ export default function EditHabitScreen() {
         difficulty: v.difficulty,
         scheduleDays: v.scheduleDays,
         endDate: v.endDate,
+        reminderTime: v.reminderTime,
       });
       const before = [...initialValues.assignedUserIds].sort().join();
       if (isFamily && habit.data.canManage && [...v.assignedUserIds].sort().join() !== before) {

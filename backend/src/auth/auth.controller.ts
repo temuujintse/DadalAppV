@@ -10,7 +10,16 @@ import { SensitiveRateLimit } from '../common/guards/rate-limit';
 import { MeDto } from '../users/dto/me.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService, ClientInfo } from './auth.service';
-import { AuthResultDto, LoginDto, RefreshDto, RegisterDto, TokenPairDto } from './dto/auth.dto';
+import {
+  AuthResultDto,
+  ForgotPasswordDto,
+  LoginDto,
+  RefreshDto,
+  RegisterDto,
+  ResetPasswordDto,
+  TokenPairDto,
+} from './dto/auth.dto';
+import { PasswordResetService } from './password-reset.service';
 
 function clientInfo(req: Request): ClientInfo {
   return { userAgent: req.header('user-agent') ?? undefined, ip: req.ip };
@@ -22,7 +31,35 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly users: UsersService,
+    private readonly passwordReset: PasswordResetService,
   ) {}
+
+  @Public()
+  @SensitiveRateLimit()
+  @Post('password/forgot')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'E-mail a 6-digit reset code',
+    description: 'Answers the same whether or not the e-mail is registered.',
+  })
+  @ApiEnvelopeResponse(null)
+  @ApiErrorResponses(400, 429)
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<null> {
+    await this.passwordReset.request(dto.email);
+    return null;
+  }
+
+  @Public()
+  @SensitiveRateLimit()
+  @Post('password/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Set a new password with the e-mailed code (signs out all devices)' })
+  @ApiEnvelopeResponse(null)
+  @ApiErrorResponses(400, 429)
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<null> {
+    await this.passwordReset.reset(dto.email, dto.code, dto.password);
+    return null;
+  }
 
   @Public()
   @SensitiveRateLimit()

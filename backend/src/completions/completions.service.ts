@@ -29,6 +29,7 @@ import { effectiveHappiness } from '../pets/pet-rules';
 import { PetsService } from '../pets/pets.service';
 import { QuestsService } from '../quests/quests.service';
 import { StreaksService } from '../streaks/streaks.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface CompleteOptions {
   /** OFFLINE_SYNC allows backfilling within OFFLINE_SYNC_WINDOW_DAYS. */
@@ -58,6 +59,7 @@ export class CompletionsService {
     private readonly achievements: AchievementsService,
     private readonly pets: PetsService,
     private readonly quests: QuestsService,
+    private readonly notifications: NotificationsService,
     config: ConfigService<Env, true>,
   ) {
     this.offlineWindowDays = config.get('OFFLINE_SYNC_WINDOW_DAYS', { infer: true });
@@ -74,8 +76,10 @@ export class CompletionsService {
     const replay = await this.findReplay(userId, habitId, dto.idempotencyKey);
     if (replay) return replay;
 
+    // Filled inside the transaction, published only after it commits.
+    const sharedDone: { familyId: string; title: string }[] = [];
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const ctx = await this.habits.loadContext(userId, habitId, tx);
         const { habit, today } = ctx;
 
@@ -176,6 +180,9 @@ export class CompletionsService {
         const questsCompleted = await this.quests.refreshForUser(tx, userId);
         const after = await this.ledger.personalState(tx, userId);
 
+        if (habit.type === 'FAMILY' && habit.completionMode === 'SHARED' && habit.familyId) {
+          sharedDone.push({ familyId: habit.familyId, title: habit.title });
+        }
         return {
           completion: this.toDto(completion),
           streak: { current: streak.current, longest: streak.longest },
@@ -189,6 +196,10 @@ export class CompletionsService {
           questsCompleted,
         };
       });
+      for (const e of sharedDone) {
+        this.notifications.sharedHabitCompleted(e.familyId, userId, habitId, e.title);
+      }
+      return result;
     } catch (err) {
       if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2002') {
         throw err;

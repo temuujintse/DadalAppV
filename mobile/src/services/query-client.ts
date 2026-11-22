@@ -42,4 +42,7 @@ export const queryKeys = {
   rewardList: ['rewards', 'list'] as const,
   redemptions: (scope: string) => ['rewards', 'redemptions', scope] as const,
   syncStatus: ['sync', 'status'] as const,
+  notifications: ['notifications'] as const,
+  notificationList: ['notifications', 'list'] as const,
+  notificationUnread: ['notifications', 'unread'] as const,
 };

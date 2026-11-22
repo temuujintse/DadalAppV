@@ -173,8 +173,8 @@ Dadal/
 9. Hot reload: watchman `~/Desktop` хавтсанд "Recrawl" алдаа өгч, Metro файлын өөрчлөлт илрүүлэхгүй байсан. Төслийг Desktop-оос гадна зөөх эсвэл watchman-д Full Disk Access өгөх хэрэгтэй.
 6. Хуваарь өөрчлөгдөхөд streak-ийг шинэ хуваариар (түүхэнд ч) тооцож байна — энгийн, гэхдээ "өнгөрсөн өдрүүдэд хуучин хуваарь" шаардлагатай бол `HabitScheduleDay`-д хүчинтэй хугацаа нэмнэ.
 7. Хүүхэд (CHILD) хувийн дадал үүсгэж чадна (spec-д тодорхой хориг байхгүй). Хязгаарлах бол нэг мөр policy өөрчлөлт.
-4. Pet animation state-ийн нэрс: үндсэн prompt (IDLE, HAPPY, SAD, EATING, CARE, LEVEL_UP, SLEEPING, CELEBRATE, UNLOCK) ба AI prompt (IDLE, HAPPY, EXCITED, CARING, SLEEPING, CELEBRATE, LEVEL_UP) зөрүүтэй → нэг `PetAnimationState` superset enum болгох санал.
-5. AI module-ийн зам: AI prompt `src/modules/ai/` гэсэн ч бусад module `src/<module>/` бүтэцтэй → тууштай байлгахын тулд `src/ai/` болгох санал.
+4. ~~Pet animation state~~ — **ШИЙДСЭН (2026-11-22, хэрэглэгч):** одоогийн 9 state хэвээр; AI-ийн EXCITED→CELEBRATE, CARING→CARE гэж map хийнэ (AI Pet phase-д).
+5. ~~AI module-ийн зам~~ — **ШИЙДСЭН (2026-11-22, хэрэглэгч):** `src/ai/` (бусад module-тэй ижил).
 
 12. ~~Primary товчны contrast~~ — **ШИЙДСЭН (2026-11-22, хэрэглэгч):** товчны дэвсгэр #F97316 хэвээр (цагаан текст 2.8:1). Жижиг текстэд `primaryText #C2410C` ашиглана.
 13. Expo Go-гийн tools товч (⚙) баруун дээд буланд UI-г давхарлана — зөвхөн dev, production build-д байхгүй.
@@ -217,3 +217,15 @@ Dadal/
 | AIUsageLog | userId, provider, model, feature, input/output/totalTokens, estimatedCost, latencyMs, status, requestId — prompt/PII хадгалахгүй |
 
 **Хамгаалалт:** OPENAI_API_KEY зөвхөн backend env-д; AI нь XP/streak/completion/role-ийг хэзээ ч шууд өөрчлөхгүй — санал → хэрэглэгч Accept → одоо байгаа business service. Per-user өдрийн quota (`AI_DAILY_USER_LIMIT`) + throttler. Хүүхдийн мэдээллийг хамгийн бага (displayName ч дамжуулахгүй байж болно).
+
+
+## 10. AI (хэрэгжсэн: Phase 1 Foundation + Phase 2 Coach, 2026-11-22)
+
+- `src/ai/`: `AIProvider` interface (token `AI_PROVIDER`) ← `OpenAIProvider` (албан ёсны SDK, Responses API, strict JSON Schema structured output, SDK-ийн retry/backoff, timeout). Бизнес код SDK-тэй шууд холбогдохгүй.
+- `AIOrchestrator`: идэвхжүүлэлт (`AI_ENABLED`, key, хэрэглэгчийн opt-out) → өдрийн квот (хэрэглэгчийн timezone-оор) → token хязгаар → provider → zod-оор дахин шалгах → гаралтын аюулгүй байдал (URL/имэйл/утас хориг) → `AIUsageLog` (prompt хадгалахгүй) → алдааг монгол мессеж болгох (503 AI_DISABLED/AI_UNAVAILABLE, 429 AI_QUOTA_EXCEEDED, 422 AI_REFUSED, 502 AI_BAD_OUTPUT).
+- Coach: зорилго → context (дадлын гарчиг, 30 хоногийн гүйцэтгэл, streak, татгалзсан саналууд; нэр/имэйл/гэр бүлийн нэр дамжихгүй, хүүхэд бол насанд тохирсон өнгө аяс) → ≤3 санал PENDING (7 хоног хүчинтэй, `requestKey`-ээр idempotent) → Accept нь `HabitsService.create`-ээр бодит дадал (claim → давхар дадал үүсгэхгүй) / Reject + feedback. Чат: `clientKey`-ээр давхардалгүй, сүүлийн 10 мессеж контекст, `AI_CONVERSATION_RETENTION_DAYS`-аас хуучин яриа устна.
+- Prompt injection: хэрэглэгчийн текст цэвэрлэгдэж, `<<<USER_…>>>` хүрээнд "өгөгдөл" гэж дамжина; instructions нь доторх зааврыг дагахгүй байхыг заана; сэжигтэй хэллэг логт тэмдэглэгдэнэ.
+- API: `GET /ai/status`, `GET|PATCH /ai/preferences`, `POST|GET /ai/coach/recommendations`, `POST /ai/coach/recommendations/:id/accept|reject`, `POST /ai/coach/chat`, `GET /ai/conversations`, `GET|DELETE /ai/conversations/:id`.
+- Тест: unit 10 (guards, proposal validation, prompts), e2e 10 (stub provider: идэвхгүй төлөв, PII-гүй prompt, idempotency, accept/reject/хугацаа, алдааны зураглал + usage log, квот, opt-out, чат + replay + тусгаарлалт).
+- Mobile: `app/ai/coach.tsx` (Дадлын санал | Ярилцах), Нүүрний "AI зөвлөгч" карт (AI идэвхтэй үед л). 
+- Дараагийн AI phase: Smart Planner → Pet Companion → Analytics → Security & Optimization.

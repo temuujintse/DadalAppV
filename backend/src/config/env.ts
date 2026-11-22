@@ -46,6 +46,19 @@ export const envSchema = z.object({
   /** Optional Expo access token when "enhanced push security" is enabled for the project. */
   EXPO_ACCESS_TOKEN: emptyAsUndefined,
 
+  // ─── AI (src/ai) — the key never leaves the backend ───
+  OPENAI_API_KEY: emptyAsUndefined,
+  OPENAI_MODEL: emptyAsUndefined.transform((v) => v ?? 'gpt-4.1-mini'),
+  OPENAI_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
+  AI_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+  AI_DAILY_USER_LIMIT: z.coerce.number().int().min(0).max(1_000).default(10),
+  AI_MAX_INPUT_TOKENS: z.coerce.number().int().min(500).max(100_000).default(4_000),
+  AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(200).max(16_000).default(1_200),
+  AI_CONVERSATION_RETENTION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+
   RATE_LIMIT_DEFAULT: z.coerce.number().int().positive().default(120),
   RATE_LIMIT_AUTH: z.coerce.number().int().positive().default(10),
 });

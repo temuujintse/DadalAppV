@@ -45,4 +45,9 @@ export const queryKeys = {
   notifications: ['notifications'] as const,
   notificationList: ['notifications', 'list'] as const,
   notificationUnread: ['notifications', 'unread'] as const,
+  ai: ['ai'] as const,
+  aiStatus: ['ai', 'status'] as const,
+  aiRecommendations: ['ai', 'recommendations'] as const,
+  aiConversations: ['ai', 'conversations'] as const,
+  aiConversation: (id: string) => ['ai', 'conversations', id] as const,
 };

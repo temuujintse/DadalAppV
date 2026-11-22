@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
@@ -8,7 +8,9 @@ import { PrismaService } from '../src/database/prisma.service';
 
 export const API = '/api/v1';
 
-export async function createTestApp(): Promise<{
+export async function createTestApp(
+  customize: (builder: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,
+): Promise<{
   app: INestApplication<App>;
   prisma: PrismaService;
 }> {
@@ -17,7 +19,7 @@ export async function createTestApp(): Promise<{
       'Refusing to run e2e tests against a non-test database (DATABASE_URL must contain "_test").',
     );
   }
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const moduleRef = await customize(Test.createTestingModule({ imports: [AppModule] })).compile();
   const app = moduleRef.createNestApplication<INestApplication<App>>();
   configureApp(app);
   await app.init();

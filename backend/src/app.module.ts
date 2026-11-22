@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AIModule } from './ai/ai.module';
 import { AuthModule } from './auth/auth.module';
 import { AuditModule } from './common/audit/audit.service';
 import { CompletionsModule } from './completions/completions.module';
@@ -56,6 +57,7 @@ import { UsersModule } from './users/users.module';
     AuditModule,
     MailModule,
     NotificationsModule,
+    AIModule,
     AuthModule,
     UsersModule,
     FamiliesModule,

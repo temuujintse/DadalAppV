@@ -50,3 +50,10 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      # AI coach (OpenAI). Leave empty to keep AI switched off.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: AI_DAILY_USER_LIMIT
+        value: '10'

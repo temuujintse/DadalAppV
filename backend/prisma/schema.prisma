@@ -212,6 +212,10 @@ model User {
   profile            UserProfile?
   sessions           AuthSession[]
   passwordResets     PasswordReset[]
+  aiPreference       AIUserPreference?
+  aiConversations    AIConversation[]
+  aiRecommendations  AIRecommendation[]
+  aiUsage            AIUsageLog[]
   pushTokens         PushToken[]
   familyMembership   FamilyMember?
   createdFamilies    Family[]           @relation("FamilyCreatedBy")
@@ -400,13 +404,14 @@ model Habit {
   updatedAt      DateTime             @updatedAt @db.Timestamptz(3)
   deletedAt      DateTime?            @db.Timestamptz(3)
 
-  creator      User               @relation("HabitCreator", fields: [creatorId], references: [id], onDelete: Restrict)
-  family       Family?            @relation(fields: [familyId], references: [id], onDelete: Restrict)
-  assignments  HabitAssignment[]
-  scheduleDays HabitScheduleDay[]
-  completions  HabitCompletion[]
-  streaks      HabitStreak[]
-  familyStreak FamilyHabitStreak?
+  creator           User               @relation("HabitCreator", fields: [creatorId], references: [id], onDelete: Restrict)
+  family            Family?            @relation(fields: [familyId], references: [id], onDelete: Restrict)
+  assignments       HabitAssignment[]
+  scheduleDays      HabitScheduleDay[]
+  completions       HabitCompletion[]
+  aiRecommendations AIRecommendation[]
+  streaks           HabitStreak[]
+  familyStreak      FamilyHabitStreak?
 
   @@index([familyId, status])
   @@index([creatorId, status])
@@ -827,4 +832,128 @@ model AuditLog {
   @@index([familyId, createdAt])
   @@index([actorId, createdAt])
   @@index([entityType, entityId])
+}
+
+// ─────────────────────────────── AI ───────────────────────────────
+// AI only proposes; accepted proposals go through the normal services (see src/ai).
+
+enum AIFeature {
+  COACH_RECOMMEND
+  COACH_CHAT
+  PLANNER
+  PET
+  ANALYTICS
+}
+
+enum AIUsageStatus {
+  SUCCESS
+  ERROR
+}
+
+enum AIRecommendationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum AIMessageRole {
+  USER
+  ASSISTANT
+}
+
+model AIUserPreference {
+  userId                 String           @id @db.Uuid
+  aiEnabled              Boolean          @default(true)
+  goals                  String?          @db.VarChar(500)
+  availableMinutesPerDay Int?
+  preferredDifficulty    HabitDifficulty?
+  updatedAt              DateTime         @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AIConversation {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @db.Uuid
+  feature       AIFeature @default(COACH_CHAT)
+  title         String    @db.VarChar(80)
+  lastMessageAt DateTime  @default(now()) @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AIMessage[]
+
+  @@index([userId, lastMessageAt])
+}
+
+model AIMessage {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String        @db.Uuid
+  role           AIMessageRole
+  content        String        @db.VarChar(4000)
+  /// Validated structured output (assistant messages)
+  structured     Json?
+  /// Client idempotency key for user messages (retries do not duplicate turns)
+  clientKey      String?       @db.VarChar(80)
+  createdAt      DateTime      @default(now()) @db.Timestamptz(3)
+
+  conversation AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, clientKey])
+  @@index([conversationId, createdAt])
+}
+
+model AIRecommendation {
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String                 @db.Uuid
+  /// Client idempotency key of the request that produced it (retries return the same set)
+  requestKey     String                 @db.VarChar(80)
+  position       Int
+  status         AIRecommendationStatus @default(PENDING)
+  goal           String                 @db.VarChar(500)
+  /// Validated proposal: title, description, difficulty, frequency, scheduleDays, ...
+  payload        Json
+  createdHabitId String?                @db.Uuid
+  expiresAt      DateTime               @db.Timestamptz(3)
+  decidedAt      DateTime?              @db.Timestamptz(3)
+  createdAt      DateTime               @default(now()) @db.Timestamptz(3)
+
+  user         User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdHabit Habit?                    @relation(fields: [createdHabitId], references: [id], onDelete: SetNull)
+  feedback     AIRecommendationFeedback?
+
+  @@unique([userId, requestKey, position])
+  @@index([userId, status, createdAt])
+}
+
+model AIRecommendationFeedback {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recommendationId String   @unique @db.Uuid
+  reason           String?  @db.VarChar(300)
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  recommendation AIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+}
+
+/// Token accounting per AI call. Never stores prompts or personal data.
+model AIUsageLog {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String        @db.Uuid
+  provider      String        @db.VarChar(30)
+  model         String        @db.VarChar(80)
+  feature       AIFeature
+  inputTokens   Int           @default(0)
+  outputTokens  Int           @default(0)
+  totalTokens   Int           @default(0)
+  estimatedCost Float?
+  latencyMs     Int           @default(0)
+  status        AIUsageStatus
+  errorCode     String?       @db.VarChar(40)
+  requestId     String?       @db.VarChar(120)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

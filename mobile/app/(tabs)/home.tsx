@@ -22,6 +22,7 @@ import { useQuests } from '@/features/quests/api';
 import { DailyQuestCard } from '@/features/quests/components/DailyQuestCard';
 import { useMyGamification } from '@/features/gamification/api';
 import { BellButton } from '@/features/notifications/components/BellButton';
+import { AICoachEntry } from '@/features/ai/components/AICoachEntry';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import { errorMessage } from '@/services/api/errors';
 import { colors, radius, spacing } from '@/theme';
@@ -178,6 +179,10 @@ export default function HomeScreen() {
 
       <Animated.View entering={FadeInDown.delay(140).duration(350)}>
         <DailyQuestCard />
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(150).duration(350)}>
+        <AICoachEntry />
       </Animated.View>
 
       {family.data ? (

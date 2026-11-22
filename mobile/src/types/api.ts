@@ -518,3 +518,57 @@ export interface AppNotification {
   readAt: string | null;
   createdAt: string;
 }
+
+// ─── AI ───
+
+export interface AIStatus {
+  enabled: boolean;
+  reason: 'NOT_CONFIGURED' | 'DISABLED' | 'USER_DISABLED' | null;
+  dailyLimit: number;
+  usedToday: number;
+  remainingToday: number;
+}
+
+export interface AIRecommendation {
+  id: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  goal: string;
+  proposal: {
+    title: string;
+    description: string;
+    icon: string;
+    difficulty: HabitDifficulty;
+    frequency: 'DAILY' | 'WEEKLY' | 'CUSTOM';
+    scheduleDays: number[];
+    estimatedMinutes: number;
+    reason: string;
+    expectedBenefit: string;
+  };
+  createdHabitId: string | null;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface AIMessage {
+  id: string;
+  role: 'USER' | 'ASSISTANT';
+  content: string;
+  createdAt: string;
+}
+
+export interface AIConversationSummary {
+  id: string;
+  title: string;
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface AIConversation extends AIConversationSummary {
+  messages: AIMessage[];
+}
+
+export interface AIChatResult {
+  conversationId: string;
+  userMessage: AIMessage;
+  assistantMessage: AIMessage;
+}

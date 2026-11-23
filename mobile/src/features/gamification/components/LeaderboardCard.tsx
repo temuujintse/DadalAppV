@@ -54,7 +54,7 @@ export function LeaderboardCard() {
             <AppText style={styles.rank} align="center">
               {e.rank <= 3 && e.xp > 0 ? MEDALS[e.rank - 1] : e.rank}
             </AppText>
-            <Avatar avatarKey={e.avatarKey} size={36} />
+            <Avatar avatarKey={e.avatarKey} photoUrl={e.photoUrl} size={36} />
             <View style={styles.flex}>
               <AppText variant="bodyStrong" numberOfLines={1}>
                 {e.displayName}

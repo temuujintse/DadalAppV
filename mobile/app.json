@@ -46,6 +46,14 @@
         {
           "color": "#F97316"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Профайлын зураг сонгохын тулд зургийн санд хандах зөвшөөрөл хэрэгтэй.",
+          "cameraPermission": "Профайлын зураг авахын тулд камер ашиглах зөвшөөрөл хэрэгтэй.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

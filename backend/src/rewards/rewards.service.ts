@@ -16,8 +16,9 @@ import {
   UpdateRewardDto,
 } from './dto/reward.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { photoUrl } from '../common/utils/photo-url';
 
-const PROFILE = { select: { displayName: true, avatarKey: true } } as const;
+const PROFILE = { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } } as const;
 
 const REDEMPTION_INCLUDE = {
   reward: { select: { id: true, title: true, icon: true } },
@@ -503,11 +504,15 @@ export class RewardsService {
     };
   }
 
-  private person(u: { id: string; profile: { displayName: string; avatarKey: string } | null }) {
+  private person(u: {
+    id: string;
+    profile: { displayName: string; avatarKey: string; photoUpdatedAt: Date | null } | null;
+  }) {
     return {
       userId: u.id,
       displayName: u.profile?.displayName ?? '—',
       avatarKey: u.profile?.avatarKey ?? 'fox',
+      photoUrl: photoUrl(u.id, u.profile?.photoUpdatedAt),
     };
   }
 }

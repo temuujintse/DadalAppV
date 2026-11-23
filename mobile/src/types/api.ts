@@ -16,6 +16,7 @@ export interface Me {
   profile: {
     displayName: string;
     avatarKey: string;
+    photoUrl: string | null;
     timezone: string;
     locale: string;
     onboardingCompletedAt: string | null;
@@ -58,6 +59,7 @@ export interface FamilyMember {
   userId: string;
   displayName: string;
   avatarKey: string;
+  photoUrl: string | null;
   role: FamilyRole;
   joinedAt: string;
   isMe: boolean;
@@ -104,6 +106,8 @@ export interface PersonRef {
   userId: string;
   displayName: string;
   avatarKey: string;
+  /** API path of the profile photo (authenticated), or null */
+  photoUrl: string | null;
 }
 
 export interface Habit {
@@ -264,6 +268,7 @@ export interface Leaderboard {
     userId: string;
     displayName: string;
     avatarKey: string;
+    photoUrl: string | null;
     role: FamilyRole;
     xp: number;
     level: number;

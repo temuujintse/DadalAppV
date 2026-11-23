@@ -3,4 +3,6 @@ export class PersonRefDto {
   userId: string;
   displayName: string;
   avatarKey: string;
+  /** API path of the profile photo (authenticated), or null */
+  photoUrl: string | null;
 }

@@ -89,6 +89,7 @@ export class LeaderboardEntryDto {
   userId: string;
   displayName: string;
   avatarKey: string;
+  photoUrl: string | null;
   @ApiProperty({ enum: FamilyRole, enumName: 'FamilyRole' })
   role: FamilyRole;
   /** Personal XP earned in the period (reversals subtracted, rewards spending ignored) */

@@ -1,4 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
+import { API_BASE_URL } from '@/services/api/config';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/theme';
 import { AppText } from './AppText';
 
@@ -37,33 +40,49 @@ export function avatarEmoji(key: string, kind: 'user' | 'family' = 'user'): stri
   return map[key] ?? (kind === 'user' ? '🙂' : '🏠');
 }
 
+/**
+ * Round avatar: the uploaded photo when there is one (loaded with the session token — photos
+ * are private to the family), otherwise the preset emoji. A failed load falls back to the emoji.
+ */
 export function Avatar({
   avatarKey,
+  photoUrl,
   size = 48,
   kind = 'user',
   background = colors.primarySoft,
 }: {
   avatarKey: string;
+  photoUrl?: string | null;
   size?: number;
   kind?: 'user' | 'family';
   background?: string;
 }) {
+  const token = useSessionStore((s) => s.tokens?.accessToken);
+  const [failed, setFailed] = useState<string | null>(null);
+  const showPhoto = Boolean(photoUrl && token && failed !== photoUrl);
+  const circle = { width: size, height: size, borderRadius: size / 2, backgroundColor: background };
+
   return (
     <View
-      style={[
-        styles.circle,
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: background },
-      ]}
+      style={[styles.circle, circle]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <AppText style={{ fontSize: size * 0.52, lineHeight: size * 0.68 }} allowFontScaling={false}>
-        {avatarEmoji(avatarKey, kind)}
-      </AppText>
+      {showPhoto ? (
+        <Image
+          source={{ uri: `${API_BASE_URL}${photoUrl}`, headers: { Authorization: `Bearer ${token}` } }}
+          style={circle}
+          onError={() => setFailed(photoUrl ?? null)}
+        />
+      ) : (
+        <AppText style={{ fontSize: size * 0.52, lineHeight: size * 0.68 }} allowFontScaling={false}>
+          {avatarEmoji(avatarKey, kind)}
+        </AppText>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  circle: { alignItems: 'center', justifyContent: 'center' },
+  circle: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 });

@@ -99,6 +99,8 @@ export class FamilyMemberDto {
   userId: string;
   displayName: string;
   avatarKey: string;
+  /** API path of the uploaded photo (authenticated), or null */
+  photoUrl: string | null;
   @ApiProperty({ enum: FamilyRole, enumName: 'FamilyRole' })
   role: FamilyRole;
   joinedAt: string;

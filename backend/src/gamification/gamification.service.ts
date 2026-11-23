@@ -17,6 +17,7 @@ import {
   XpTransactionDto,
 } from './dto/gamification.dto';
 import { levelFromXp } from './level';
+import { photoUrl } from '../common/utils/photo-url';
 
 /** Read side of gamification. All writes go through XpLedgerService inside transactions. */
 @Injectable()
@@ -118,7 +119,7 @@ export class GamificationService {
       include: {
         user: {
           select: {
-            profile: { select: { displayName: true, avatarKey: true } },
+            profile: { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } },
             gamification: { select: { lifetimeXP: true } },
           },
         },
@@ -141,6 +142,7 @@ export class GamificationService {
         userId: m.userId,
         displayName: m.user.profile?.displayName ?? '—',
         avatarKey: m.user.profile?.avatarKey ?? 'fox',
+        photoUrl: photoUrl(m.userId, m.user.profile?.photoUpdatedAt),
         role: m.role,
         xp: Math.max(0, xpOf.get(m.userId) ?? 0),
         level: levelFromXp(m.user.gamification?.lifetimeXP ?? 0).level,

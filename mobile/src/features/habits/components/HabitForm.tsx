@@ -234,7 +234,7 @@ export function HabitForm({
                           accessibilityLabel={m.displayName}
                           style={[styles.memberChip, on && styles.memberChipOn]}
                         >
-                          <Avatar avatarKey={m.avatarKey} size={26} />
+                          <Avatar avatarKey={m.avatarKey} photoUrl={m.photoUrl} size={26} />
                           <AppText variant="label" color={on ? colors.primaryText : colors.text}>
                             {m.displayName}
                           </AppText>

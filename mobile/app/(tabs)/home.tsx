@@ -89,7 +89,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           accessibilityLabel="Профайл"
         >
-          <Avatar avatarKey={profile.avatarKey} size={52} />
+          <Avatar avatarKey={profile.avatarKey} photoUrl={profile.photoUrl} size={52} />
         </PressableScale>
       </Animated.View>
 

@@ -179,7 +179,7 @@ export default function FamilyScreen() {
 function MemberRow({ member, onPress }: { member: FamilyMember; onPress?: () => void }) {
   const content = (
     <>
-      <Avatar avatarKey={member.avatarKey} size={44} />
+      <Avatar avatarKey={member.avatarKey} photoUrl={member.photoUrl} size={44} />
       <View style={styles.memberText}>
         <AppText variant="bodyStrong" numberOfLines={1}>
           {member.displayName}

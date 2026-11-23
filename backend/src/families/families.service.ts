@@ -16,6 +16,7 @@ import {
 } from './dto/family.dto';
 import { FamilyAccessService, MembershipWithFamily } from './family-access.service';
 import { canChangeRole, canRemoveMember, FamilyPermission } from './family-policy';
+import { photoUrl } from '../common/utils/photo-url';
 
 const ROLE_ORDER: Record<FamilyRole, number> = { OWNER: 0, PARENT: 1, MEMBER: 2, CHILD: 3 };
 
@@ -111,7 +112,11 @@ export class FamiliesService {
     const members = await this.prisma.familyMember.findMany({
       where: { familyId: membership.familyId },
       include: {
-        user: { select: { profile: { select: { displayName: true, avatarKey: true } } } },
+        user: {
+          select: {
+            profile: { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } },
+          },
+        },
       },
     });
     return members
@@ -124,6 +129,7 @@ export class FamiliesService {
         userId: m.userId,
         displayName: m.user.profile?.displayName ?? '—',
         avatarKey: m.user.profile?.avatarKey ?? 'fox',
+        photoUrl: photoUrl(m.userId, m.user.profile?.photoUpdatedAt),
         role: m.role,
         joinedAt: m.joinedAt.toISOString(),
         isMe: m.userId === userId,

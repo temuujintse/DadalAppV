@@ -22,13 +22,18 @@ import {
   UpdateHabitDto,
 } from './dto/habit.dto';
 import { canCompleteHabit, canManageHabit, canViewHabit } from './habit-policy';
+import { photoUrl } from '../common/utils/photo-url';
 
 export const HABIT_INCLUDE = {
   scheduleDays: { select: { weekday: true } },
   assignments: {
     select: {
       userId: true,
-      user: { select: { profile: { select: { displayName: true, avatarKey: true } } } },
+      user: {
+        select: {
+          profile: { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } },
+        },
+      },
     },
     orderBy: { createdAt: 'asc' },
   },
@@ -38,7 +43,10 @@ export type HabitWithRelations = Prisma.HabitGetPayload<{ include: typeof HABIT_
 
 export const COMPLETION_ACTOR_INCLUDE = {
   completedBy: {
-    select: { id: true, profile: { select: { displayName: true, avatarKey: true } } },
+    select: {
+      id: true,
+      profile: { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } },
+    },
   },
 } satisfies Prisma.HabitCompletionInclude;
 
@@ -463,12 +471,13 @@ export class HabitsService {
 
   private person(
     userId: string,
-    profile: { displayName: string; avatarKey: string } | null,
+    profile: { displayName: string; avatarKey: string; photoUpdatedAt: Date | null } | null,
   ): PersonRefDto {
     return {
       userId,
       displayName: profile?.displayName ?? '—',
       avatarKey: profile?.avatarKey ?? 'fox',
+      photoUrl: photoUrl(userId, profile?.photoUpdatedAt),
     };
   }
 

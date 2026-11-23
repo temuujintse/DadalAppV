@@ -220,6 +220,7 @@ model User {
   aiInsights         AIInsight[]
   aiPetInteractions  AIPetInteraction[]
   pushTokens         PushToken[]
+  photo              UserPhoto?
   familyMembership   FamilyMember?
   createdFamilies    Family[]           @relation("FamilyCreatedBy")
   createdInvites     FamilyInvite[]     @relation("InviteCreatedBy")
@@ -249,8 +250,10 @@ model User {
 model UserProfile {
   userId                String    @id @db.Uuid
   displayName           String    @db.VarChar(50)
-  /// Preset avatar key (no photo uploads in v1 → less personal data).
+  /// Preset avatar key; shown when there is no photo.
   avatarKey             String    @default("fox") @db.VarChar(40)
+  /// Set when the user uploaded a profile photo (UserPhoto); also the cache-busting version.
+  photoUpdatedAt        DateTime? @db.Timestamptz(3)
   /// IANA timezone, e.g. "Asia/Ulaanbaatar".
   timezone              String    @default("Asia/Ulaanbaatar") @db.VarChar(64)
   locale                String    @default("mn") @db.VarChar(10)
@@ -1047,4 +1050,14 @@ model AIPetInteraction {
   pet  UserPet @relation(fields: [petId], references: [id], onDelete: Cascade)
 
   @@index([userId, event, createdAt])
+}
+
+/// Profile photo (resized on the device, ≤ 64 KB). Visible only to the user and their family.
+model UserPhoto {
+  userId    String   @id @db.Uuid
+  mime      String   @db.VarChar(20)
+  data      Bytes
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

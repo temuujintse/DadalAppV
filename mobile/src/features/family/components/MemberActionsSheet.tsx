@@ -63,7 +63,7 @@ export function MemberActionsSheet({
   return (
     <BottomSheet visible onClose={onClose}>
       <View style={styles.header}>
-        <Avatar avatarKey={member.avatarKey} size={56} />
+        <Avatar avatarKey={member.avatarKey} photoUrl={member.photoUrl} size={56} />
         <AppText variant="heading">{member.displayName}</AppText>
         <AppText variant="caption" color={colors.secondary}>
           {ROLE_LABELS[member.role]}

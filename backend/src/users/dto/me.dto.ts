@@ -8,6 +8,8 @@ import { FamilyRole } from '../../generated/prisma/enums';
 export class ProfileDto {
   displayName: string;
   avatarKey: string;
+  /** API path of the uploaded photo (authenticated), or null */
+  photoUrl: string | null;
   timezone: string;
   locale: string;
   /** ISO timestamp or null while onboarding is unfinished */
@@ -62,4 +64,14 @@ export class UpdateMeDto {
   @IsOptional()
   @IsBoolean()
   onboardingCompleted?: boolean;
+}
+
+export class UploadPhotoDto {
+  @ApiProperty({
+    description: 'Base64 image (JPEG/PNG/WebP), resized on the device; ≤ 64 KB decoded',
+  })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(90_000)
+  image: string;
 }

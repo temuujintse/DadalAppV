@@ -11,6 +11,7 @@ import { WalletState, XpLedgerService } from '../gamification/xp-ledger.service'
 import { Achievement, Quest, QuestProgress } from '../generated/prisma/client';
 import { ClaimResultDto, QuestCompletedDto, QuestDto } from './dto/quest.dto';
 import { currentPeriod, nextStatus, PeriodWindow } from './quest-period';
+import { photoUrl } from '../common/utils/photo-url';
 
 interface QuestContext {
   userId: string;
@@ -364,7 +365,10 @@ export class QuestsService {
     const claimer = row?.claimedById
       ? await tx.user.findUnique({
           where: { id: row.claimedById },
-          select: { id: true, profile: { select: { displayName: true, avatarKey: true } } },
+          select: {
+            id: true,
+            profile: { select: { displayName: true, avatarKey: true, photoUpdatedAt: true } },
+          },
         })
       : null;
     return {
@@ -389,6 +393,7 @@ export class QuestsService {
             userId: claimer.id,
             displayName: claimer.profile?.displayName ?? '—',
             avatarKey: claimer.profile?.avatarKey ?? 'fox',
+            photoUrl: photoUrl(claimer.id, claimer.profile?.photoUpdatedAt),
           }
         : null,
     };

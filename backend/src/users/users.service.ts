@@ -3,6 +3,7 @@ import { AppException } from '../common/errors/app.exception';
 import { ErrorCode } from '../common/errors/error-codes';
 import { PrismaService } from '../database/prisma.service';
 import { MeDto, UpdateMeDto } from './dto/me.dto';
+import { photoUrl } from '../common/utils/photo-url';
 
 @Injectable()
 export class UsersService {
@@ -44,6 +45,7 @@ export class UsersService {
       profile: {
         displayName: user.profile.displayName,
         avatarKey: user.profile.avatarKey,
+        photoUrl: photoUrl(user.id, user.profile.photoUpdatedAt),
         timezone: user.profile.timezone,
         locale: user.profile.locale,
         onboardingCompletedAt: user.profile.onboardingCompletedAt?.toISOString() ?? null,

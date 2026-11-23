@@ -81,7 +81,7 @@ export function QuestCard({ quest }: { quest: Quest }) {
         />
       ) : claimed && quest.claimedBy ? (
         <View style={styles.claimer}>
-          <Avatar avatarKey={quest.claimedBy.avatarKey} size={22} />
+          <Avatar avatarKey={quest.claimedBy.avatarKey} photoUrl={quest.claimedBy.photoUrl} size={22} />
           <AppText variant="caption" color={colors.successText}>
             {quest.scope === 'FAMILY'
               ? `${quest.claimedBy.displayName} шагналыг авсан`

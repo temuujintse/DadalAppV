@@ -230,7 +230,7 @@ export default function HabitDetailScreen() {
           <AppText variant="label">Өнөөдөр хэн хийсэн бэ?</AppText>
           {h.todayByMember.map((m) => (
             <View key={m.userId} style={styles.memberRow}>
-              <Avatar avatarKey={m.avatarKey} size={32} />
+              <Avatar avatarKey={m.avatarKey} photoUrl={m.photoUrl} size={32} />
               <AppText style={styles.flex}>{m.displayName}</AppText>
               <AppText variant="caption" color={m.completed ? colors.successText : colors.secondary}>
                 {m.completed ? 'Биелүүлсэн ✓' : 'Хүлээгдэж байна'}
@@ -290,7 +290,7 @@ export default function HabitDetailScreen() {
           <View style={styles.assignees}>
             {h.assignees.map((a) => (
               <View key={a.userId} style={styles.assignee}>
-                <Avatar avatarKey={a.avatarKey} size={28} />
+                <Avatar avatarKey={a.avatarKey} photoUrl={a.photoUrl} size={28} />
                 <AppText variant="caption">{a.displayName}</AppText>
               </View>
             ))}

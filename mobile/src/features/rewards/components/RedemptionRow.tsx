@@ -58,7 +58,7 @@ export function RedemptionRow({
           <View style={styles.meta}>
             {showRequester ? (
               <>
-                <Avatar avatarKey={item.requester.avatarKey} size={18} />
+                <Avatar avatarKey={item.requester.avatarKey} photoUrl={item.requester.photoUrl} size={18} />
                 <AppText variant="caption" color={colors.secondary}>
                   {item.requester.displayName} ·
                 </AppText>

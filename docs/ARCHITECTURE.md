@@ -235,3 +235,8 @@ Dadal/
 - **Analytics** (`src/ai/analytics`): сүүлийн бүтэн 7 хоног (Да–Ня) / сар, өмнөх үетэй харьцуулалт, хамгийн сайн/анхаарах дадал, гарагийн хэв маяг, дундаж streak — бүгд backend. AI тайлбар үүсгэх бүрт текстийн тоо бүр metrics-д байгаа эсэхийг шалгаж, зохиосон тоотой бол татгалзана. Нэг үед нэг insight (`AIInsight` unique), metrics AI-гүй ч буцна. `GET /ai/analytics/weekly|monthly`.
 - Тест: backend unit 71, e2e 131 (+ planner 3, pet 3, analytics 2). Mobile: AI зөвлөгчид "Төлөвлөгөө" таб, Pet дэлгэцэд яриа (bubble), "Миний ахиц" → "Ахицын тайлан".
 - Дараагийн AI phase: Phase 6 Security & Optimization.
+
+## 11. Профайлын зураг (2026-11-23)
+- Утсан дээр 256×256 JPEG болгож (~20–40 KB) `PUT /users/me/photo` (base64) → `UserPhoto` (PostgreSQL bytea, ≤ 64 KB; төрлийг байтаар нь таньдаг — JPEG/PNG/WebP). Файлын хадгалалт (S3) шаардлагагүй, Render free plan-д тохиромжтой.
+- `GET /users/:id/photo` — зөвхөн өөрөө болон гэр бүлийн гишүүд (бусдад 404), `Cache-Control: private, immutable`; URL `?v=<photoUpdatedAt>` хувилбартай. `DELETE /users/me/photo` → preset аватар руу буцна.
+- `photoUrl` нь `PersonRef`, гишүүд, тэргүүлэгчид, `me.profile`-д. Mobile `Avatar` нь token-той ачаалж, алдаа гарвал emoji руу буцна. e2e 4 тест.

@@ -11,7 +11,7 @@ const base: CompletionResult = {
     id: 'c1',
     habitId: 'h1',
     localDate: '2026-11-21',
-    completedBy: { userId: 'u1', displayName: 'Сараа', avatarKey: 'fox' },
+    completedBy: { userId: 'u1', displayName: 'Сараа', avatarKey: 'fox', photoUrl: null },
     note: null,
     source: 'ONLINE',
     createdAt: '2026-11-21T08:00:00Z',

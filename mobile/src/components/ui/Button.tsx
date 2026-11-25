@@ -22,8 +22,8 @@ const VARIANTS: Record<Variant, { bg: string; fg: string; border?: string }> = {
   secondary: { bg: colors.surface, fg: colors.text, border: colors.border },
   ghost: { bg: 'transparent', fg: colors.primaryText },
   danger: { bg: colors.errorSoft, fg: colors.errorText },
-  /** Quest & special-reward accent (purple), so quest screens keep a single accent colour. */
-  quest: { bg: colors.purple, fg: colors.white },
+  /** Quest & special-reward accent (brand Accent with dark text for contrast). */
+  quest: { bg: colors.accent, fg: colors.text },
 };
 
 export function Button({

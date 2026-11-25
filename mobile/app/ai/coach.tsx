@@ -158,7 +158,7 @@ function IdeasTab() {
           <Button
             title="Санал авах"
             variant="quest"
-            icon={<Sparkles size={18} color={colors.white} />}
+            icon={<Sparkles size={18} color={colors.text} />}
             onPress={ask}
             loading={recommend.isPending}
             disabled={!goal.trim()}

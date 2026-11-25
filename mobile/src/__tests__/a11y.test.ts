@@ -23,6 +23,13 @@ describe('text colour contrast', () => {
     expect(contrastRatio(fg, colors.surface)).toBeGreaterThanOrEqual(AA);
   });
 
+  it('keeps buttons readable', () => {
+    // Bold 16px labels: WCAG large-text threshold (3:1) for white on Primary.
+    expect(contrastRatio(colors.white, colors.primary)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(colors.text, colors.accent)).toBeGreaterThanOrEqual(AA);
+    expect(contrastRatio(colors.white, colors.purpleText)).toBeGreaterThanOrEqual(AA);
+  });
+
   it('keeps tinted banners readable', () => {
     expect(contrastRatio(colors.primaryText, colors.primarySoft)).toBeGreaterThanOrEqual(AA);
     expect(contrastRatio(colors.errorText, colors.errorSoft)).toBeGreaterThanOrEqual(AA);

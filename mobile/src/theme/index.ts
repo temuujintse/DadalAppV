@@ -1,36 +1,41 @@
 /**
  * Family Habit design tokens — "Modern Playful Minimalism".
- * One accent per screen: Primary (orange) for actions/XP, Purple only for quests & special rewards.
+ * Brand palette (2026-11-25): Primary #6C63FF, Secondary #8B85FF, Accent #FFB84D,
+ * Background #F7F7FC, Text #25243A. Primary for actions/XP; Accent for quests & special rewards.
  */
 export const colors = {
-  primary: '#F97316',
-  primarySoft: '#FFEDD5',
-  primaryPressed: '#EA580C',
-  background: '#FFF9F3',
+  primary: '#6C63FF',
+  primarySoft: '#EEEDFF',
+  primaryPressed: '#5A52E0',
+  background: '#F7F7FC',
   surface: '#FFFFFF',
-  surfaceMuted: '#FFF3E6',
-  text: '#1E293B',
-  secondary: '#64748B',
-  border: '#F1E4D6',
+  surfaceMuted: '#EFEFF8',
+  text: '#25243A',
+  /** Muted text (captions, hints) — readable grey-violet, not the brand Secondary. */
+  secondary: '#66657C',
+  border: '#E6E5F2',
+  /** Brand Accent: quest / special-reward buttons (with dark text), highlights. */
+  accent: '#FFB84D',
   success: '#22C55E',
   successSoft: '#DCFCE7',
-  warning: '#F59E0B',
-  warningSoft: '#FEF3C7',
-  warningText: '#92400E',
+  warning: '#FFB84D',
+  warningSoft: '#FFF3DC',
+  warningText: '#8A5A00',
   error: '#EF4444',
   errorSoft: '#FEE2E2',
-  purple: '#8B5CF6',
-  purpleSoft: '#EDE9FE',
+  /** Brand Secondary: AI / coach fills and icons. */
+  purple: '#8B85FF',
+  purpleSoft: '#F0EFFF',
   /**
    * Text-only shades of the palette (WCAG AA ≥ 4.5:1 on the light surfaces). The palette
    * colours stay for fills, icons and progress; small text uses these.
    */
-  primaryText: '#C2410C',
+  primaryText: '#5249D8',
   successText: '#15803D',
   errorText: '#B91C1C',
-  purpleText: '#6D28D9',
+  purpleText: '#5B54D6',
   white: '#FFFFFF',
-  overlay: 'rgba(30, 41, 59, 0.45)',
+  overlay: 'rgba(37, 36, 58, 0.45)',
 } as const;
 
 export const spacing = {
@@ -72,7 +77,7 @@ export const typography = {
 
 export const shadow = {
   card: {
-    shadowColor: '#7C2D12',
+    shadowColor: '#25243A',
     shadowOpacity: 0.06,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 6 },

@@ -96,7 +96,7 @@ export function PlannerTab() {
         <Button
           title="Өнөөдрийн төлөвлөгөө гаргах"
           variant="quest"
-          icon={<CalendarClock size={18} color={colors.white} />}
+          icon={<CalendarClock size={18} color={colors.text} />}
           onPress={create}
           loading={generate.isPending}
         />

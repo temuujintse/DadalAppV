@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#FFF9F3",
+    "backgroundColor": "#F7F7FC",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.familyhabit.mobile"
@@ -15,7 +15,7 @@
     "android": {
       "package": "app.familyhabit.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#FFF9F3",
+        "backgroundColor": "#F7F7FC",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -36,7 +36,7 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
-          "backgroundColor": "#FFF9F3"
+          "backgroundColor": "#F7F7FC"
         }
       ],
       "@react-native-community/datetimepicker",
@@ -44,7 +44,7 @@
       [
         "expo-notifications",
         {
-          "color": "#F97316"
+          "color": "#6C63FF"
         }
       ],
       [

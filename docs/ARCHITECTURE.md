@@ -240,3 +240,9 @@ Dadal/
 - Утсан дээр 256×256 JPEG болгож (~20–40 KB) `PUT /users/me/photo` (base64) → `UserPhoto` (PostgreSQL bytea, ≤ 64 KB; төрлийг байтаар нь таньдаг — JPEG/PNG/WebP). Файлын хадгалалт (S3) шаардлагагүй, Render free plan-д тохиромжтой.
 - `GET /users/:id/photo` — зөвхөн өөрөө болон гэр бүлийн гишүүд (бусдад 404), `Cache-Control: private, immutable`; URL `?v=<photoUpdatedAt>` хувилбартай. `DELETE /users/me/photo` → preset аватар руу буцна.
 - `photoUrl` нь `PersonRef`, гишүүд, тэргүүлэгчид, `me.profile`-д. Mobile `Avatar` нь token-той ачаалж, алдаа гарвал emoji руу буцна. e2e 4 тест.
+
+## 12. Өнгөний палитр солигдсон (2026-11-25, хэрэглэгч)
+Spec-ийн улбар шар палитрыг хэрэглэгч солив: Primary **#6C63FF**, Secondary **#8B85FF**, Accent **#FFB84D**, Background **#F7F7FC**, Text **#25243A** (§7-ийн #F97316 товчны шийдвэрийг орлоно).
+- `mobile/src/theme/index.ts`: primary/primarySoft #EEEDFF/primaryPressed #5A52E0; brand Secondary → `purple` (AI/coach дүүргэлт, icon); Accent → `accent`/`warning` (даалгавар, онцгой шагналын товч — бараан тексттэй, 8.8:1); muted текст `secondary` #66657C (brand Secondary биш — #8B85FF жижиг текстэд 3:1 л хүрдэг).
+- Жижиг текстийн хувилбарууд (≥ 4.5:1): primaryText #5249D8, purpleText #5B54D6, warningText #8A5A00. Primary дээрх цагаан текст 4.3:1 (том/тод товчны 3:1-ийг хангана).
+- app.json splash/icon дэвсгэр #F7F7FC, мэдэгдлийн өнгө #6C63FF. Pet (үнэг) болон дадлын өнгөний сонголтууд хэвээр.
